@@ -1,0 +1,13 @@
+# Expose the gateway on a NodePort like the regional apiservers. The
+# nodePort is a placeholder; pick a free port on the central cluster.
+apiVersion: v1
+kind: Service
+metadata:
+  name: pipeline-core-service
+  namespace: aiplatform-core-gateway
+spec:
+  type: NodePort
+  ports:
+  - name: http
+    port: 8080
+    nodePort: 30180

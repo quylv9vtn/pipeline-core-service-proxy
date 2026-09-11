@@ -1,0 +1,7 @@
+{
+  "regions": {
+    "vn-north-1": {
+      "endpoint": "http://10.24.10.26:31132"
+    }
+  }
+}

@@ -1,0 +1,22 @@
+# Example ArgoCD Application for pipeline-core-service. Fill in repoURL
+# after pushing this folder's git repo to a remote.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: pipeline-core-service
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://git.example.com/ai-platform/pipeline-core-service.git  # TODO: set
+    targetRevision: main
+    path: deploy/kustomize/overlays/central
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: aiplatform-core-gateway
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=false

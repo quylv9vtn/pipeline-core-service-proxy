@@ -1,0 +1,5 @@
+{
+  "regions": {
+    "vn-north-1": { "endpoint": "not a url" }
+  }
+}

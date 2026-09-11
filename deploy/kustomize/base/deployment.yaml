@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pipeline-core-service
+  namespace: aiplatform-core-gateway
+  labels:
+    app: pipeline-core-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pipeline-core-service
+  template:
+    metadata:
+      labels:
+        app: pipeline-core-service
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+    spec:
+      serviceAccountName: pipeline-core-service
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 45
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: pipeline-core-service
+        image: harbor-local.aiplatformdev.freeddns.org/ai-platform/pipeline/pipeline-core-service:placeholder
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 8080
+        env:
+        - name: PORT
+          value: "8080"
+        - name: LOG_LEVEL
+          value: "info"
+        - name: REGIONS_CONFIG_PATH
+          value: /etc/core-gateway/regions.json
+        - name: HEALTH_CHECK_INTERVAL_SECONDS
+          value: "30"
+        volumeMounts:
+        - name: regions-config
+          mountPath: /etc/core-gateway
+          readOnly: true
+        # Gateway-owned, region-free liveness/readiness.
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 3
+          periodSeconds: 5
+          timeoutSeconds: 2
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 3
+          periodSeconds: 5
+          timeoutSeconds: 2
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 1000
+          capabilities:
+            drop:
+            - ALL
+      volumes:
+      - name: regions-config
+        configMap:
+          name: core-gateway-regions

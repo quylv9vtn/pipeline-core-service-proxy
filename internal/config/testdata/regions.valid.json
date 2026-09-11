@@ -1,0 +1,6 @@
+{
+  "regions": {
+    "vn-north-1": { "endpoint": "http://10.24.10.26:31132" },
+    "vn-south-2": { "endpoint": "https://api.vn-south-2.example.com", "insecure_skip_verify": true }
+  }
+}
