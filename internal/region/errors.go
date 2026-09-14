@@ -56,6 +56,7 @@ func UnknownRegion(name string, valid []string) *APIError {
 		Status:       http.StatusBadRequest,
 		Code:         "unknown_region",
 		Message:      "Unknown region \"" + name + "\".",
+		Region:       name,
 		ValidRegions: valid,
 		Hint:         regionHint,
 	}

@@ -1,10 +1,13 @@
 package middleware
 
 import (
+	"context"
 	"net/http"
 	"time"
 
 	"github.com/golang/glog"
+
+	"github.com/viettel-ai-platform/pipeline-core-service/internal/region"
 )
 
 // statusRecorder captures the response status and size for logging.
@@ -34,6 +37,29 @@ func (s *statusRecorder) Flush() {
 	}
 }
 
+// regionHolder lets the outer Logging middleware observe the region that the
+// inner Region middleware resolved: r.WithContext cannot propagate a value
+// back into the caller's request, so Region writes through this pointer.
+type regionHolder struct {
+	name string
+}
+
+type regionHolderKey struct{}
+
+func withRegionHolder(ctx context.Context) context.Context {
+	return context.WithValue(ctx, regionHolderKey{}, &regionHolder{})
+}
+
+// loggedRegion reports the region for the request log: the middleware-resolved
+// value when available (any source: header, query, or JSON body), else the
+// raw X-Region header.
+func loggedRegion(r *http.Request) string {
+	if h, ok := r.Context().Value(regionHolderKey{}).(*regionHolder); ok && h.name != "" {
+		return h.name
+	}
+	return r.Header.Get(region.HeaderName)
+}
+
 // Logging emits one glog line per request. /metrics scrapes are skipped.
 func Logging(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -43,11 +69,12 @@ func Logging(next http.Handler) http.Handler {
 		}
 		start := time.Now()
 		rec := &statusRecorder{ResponseWriter: w}
+		r = r.WithContext(withRegionHolder(r.Context()))
 		next.ServeHTTP(rec, r)
 		if rec.status == 0 {
 			rec.status = http.StatusOK
 		}
 		glog.Infof("%s %s region=%s status=%d dur=%s bytes=%d",
-			r.Method, r.URL.RequestURI(), r.Header.Get("X-Region"), rec.status, time.Since(start), rec.bytes)
+			r.Method, r.URL.RequestURI(), loggedRegion(r), rec.status, time.Since(start), rec.bytes)
 	})
 }

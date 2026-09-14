@@ -46,12 +46,22 @@ func Region(store *config.Store, maxJSONBodyBytes int64) func(http.Handler) http
 
 			res, apiErr := region.Process(r, store, maxJSONBodyBytes)
 			if apiErr != nil {
+				// Report the attempted region to the outer Logging middleware
+				// when the error carries one (e.g. unknown_region).
+				if h, ok := r.Context().Value(regionHolderKey{}).(*regionHolder); ok && apiErr.Region != "" {
+					h.name = apiErr.Region
+				}
 				status := apiErr.Status
 				metrics.RequestsTotal.WithLabelValues("-", r.Method, strconv.Itoa(status)).Inc()
 				metrics.RequestDuration.WithLabelValues("-", r.Method).
 					Observe(time.Since(start).Seconds())
 				apiErr.Write(sw)
 				return
+			}
+
+			// Hand the resolved region back to the outer Logging middleware.
+			if h, ok := r.Context().Value(regionHolderKey{}).(*regionHolder); ok {
+				h.name = res.Name
 			}
 
 			regionLabel := res.Name

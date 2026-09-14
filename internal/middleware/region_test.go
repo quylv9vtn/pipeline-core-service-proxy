@@ -99,3 +99,42 @@ func TestStatusWriterDefaults(t *testing.T) {
 	_, _ = sw.Write([]byte("x"))
 	assert.Equal(t, http.StatusOK, sw.status)
 }
+
+// TestRegionRecordedForLogging verifies the plumbing the Logging middleware
+// relies on: Region must record the resolved region (and the attempted one on
+// unknown-region errors) into the holder injected via withRegionHolder, so
+// query- and body-sourced regions appear in request logs.
+func TestRegionRecordedForLogging(t *testing.T) {
+	store := config.NewStore(map[string]config.RegionConfig{
+		"vn-north-1": {Endpoint: "http://upstream"},
+	})
+
+	// serve injects the holder and reads it back after serving, exactly like
+	// the Logging middleware does.
+	serve := func(req *http.Request) string {
+		outer := req.WithContext(withRegionHolder(req.Context()))
+		Region(store, 1<<20)(http.HandlerFunc(passthrough)).ServeHTTP(httptest.NewRecorder(), outer)
+		return loggedRegion(outer)
+	}
+
+	t.Run("body-source", func(t *testing.T) {
+		r := httptest.NewRequest(http.MethodPost, "/apis/v2beta1/experiments",
+			strings.NewReader(`{"name":"n","region":"vn-north-1"}`))
+		r.Header.Set("Content-Type", "application/json")
+		assert.Equal(t, "vn-north-1", serve(r))
+	})
+	t.Run("query-source", func(t *testing.T) {
+		r := httptest.NewRequest(http.MethodGet, "/apis/v2beta1/pipelines?region=vn-north-1", nil)
+		assert.Equal(t, "vn-north-1", serve(r))
+	})
+	t.Run("header-source", func(t *testing.T) {
+		r := httptest.NewRequest(http.MethodGet, "/apis/v2beta1/pipelines", nil)
+		r.Header.Set("X-Region", "vn-north-1")
+		assert.Equal(t, "vn-north-1", serve(r))
+	})
+	t.Run("unknown-region-attempt-logged", func(t *testing.T) {
+		r := httptest.NewRequest(http.MethodGet, "/apis/v2beta1/pipelines", nil)
+		r.Header.Set("X-Region", "vn-south-9")
+		assert.Equal(t, "vn-south-9", serve(r))
+	})
+}

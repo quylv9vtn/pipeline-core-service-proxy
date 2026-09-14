@@ -37,7 +37,7 @@ Errors (JSON):
 | Case | Status | Body |
 |---|---|---|
 | region missing | 400 | `{"error":"region_required","valid_regions":[...],"hint":"..."}` |
-| unknown region | 400 | `{"error":"unknown_region","message":"Unknown region \"x\".","valid_regions":[...]}` |
+| unknown region | 400 | `{"error":"unknown_region","message":"Unknown region \"x\".","region":"x","valid_regions":[...]}` |
 | body `region` not a string | 400 | `{"error":"invalid_region_field"}` |
 | multipart without header/query region | 400 | `{"error":"region_required_for_multipart"}` |
 | JSON body over `MAX_JSON_BODY_BYTES` | 413 | `{"error":"payload_too_large"}` |
