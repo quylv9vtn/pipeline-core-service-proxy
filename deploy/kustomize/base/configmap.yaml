@@ -4,11 +4,17 @@ metadata:
   name: core-gateway-regions
   namespace: aiplatform-core-gateway
 data:
+  # vn-north-1 runs in THIS cluster: reach it via the in-cluster Service,
+  # which ml-pipeline-project-access admits for namespaces labeled
+  # app.kubernetes.io/managed-by=pipeline-core. Pod traffic to the
+  # NodePort IP (10.24.10.26:31132) is denied — the CNI does not match
+  # pod sources against ipBlock rules — so use NodePort-style endpoints
+  # only for region clusters other than this one.
   regions.json: |
     {
       "regions": {
         "vn-north-1": {
-          "endpoint": "http://10.24.10.26:31132"
+          "endpoint": "http://ml-pipeline.kubeflow.svc.cluster.local:8888"
         }
       }
     }

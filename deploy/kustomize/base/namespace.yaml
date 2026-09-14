@@ -4,3 +4,7 @@ metadata:
   name: aiplatform-core-gateway
   labels:
     app.kubernetes.io/part-of: ai-platform-pipeline
+    # Estate convention: namespaces tagged managed-by=pipeline-core are
+    # granted ingress to ml-pipeline by the kubeflow netpol
+    # ml-pipeline-project-access (same pattern as seaweedfs-project-access).
+    app.kubernetes.io/managed-by: pipeline-core

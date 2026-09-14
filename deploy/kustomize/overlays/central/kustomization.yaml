@@ -5,6 +5,9 @@ resources:
 namespace: aiplatform-core-gateway
 patches:
 - path: service-nodeport-patch.yaml
+  target:
+    kind: Service
+    name: pipeline-core-service
 images:
 - name: harbor-local.aiplatformdev.freeddns.org/ai-platform/pipeline/pipeline-core-service
-  newTag: 20260911-initial
+  newTag: 20260914-initial

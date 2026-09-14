@@ -1,13 +1,11 @@
-# Expose the gateway on a NodePort like the regional apiservers. The
-# nodePort is a placeholder; pick a free port on the central cluster.
-apiVersion: v1
-kind: Service
-metadata:
-  name: pipeline-core-service
-  namespace: aiplatform-core-gateway
-spec:
-  type: NodePort
-  ports:
-  - name: http
-    port: 8080
-    nodePort: 30180
+# Expose the gateway on a fixed NodePort like the regional apiservers.
+# 30180 verified free on the central cluster (kubernetes-2080).
+# Written as JSON 6902 ops because strategic-merge list patches do not
+# merge into Service.spec.ports with the kustomize bundled in kubectl
+# 1.29 (v5.0.4).
+- op: add
+  path: /spec/type
+  value: NodePort
+- op: add
+  path: /spec/ports/0/nodePort
+  value: 30180
