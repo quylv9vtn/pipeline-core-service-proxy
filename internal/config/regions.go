@@ -98,3 +98,13 @@ func (s *Store) Names() []string {
 
 // Snapshot returns the current region map (do not mutate).
 func (s *Store) Snapshot() map[string]RegionConfig { return *s.v.Load() }
+
+// Endpoint returns the upstream endpoint for the named region.
+// Satisfies provision.Regions.
+func (s *Store) Endpoint(name string) (string, bool) {
+	cfg, ok := s.Lookup(name)
+	if !ok {
+		return "", false
+	}
+	return cfg.Endpoint, true
+}

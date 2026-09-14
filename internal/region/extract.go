@@ -111,7 +111,7 @@ func processJSONBody(r *http.Request, store *config.Store, valid []string, maxBy
 	newBody, value, state := StripTopLevelJSONKey(buf, JSONField)
 	switch state {
 	case JSONNotObject, JSONKeyAbsent:
-		replaceBody(r, buf) // forward the original bytes unchanged
+		ReplaceBody(r, buf) // forward the original bytes unchanged
 		return nil, missingRegion(valid)
 	case JSONKeyInvalid:
 		return nil, invalidRegionField()
@@ -120,16 +120,16 @@ func processJSONBody(r *http.Request, store *config.Store, valid []string, maxBy
 	name := strings.TrimSpace(value)
 	if name == "" {
 		// An empty region is treated as missing; forward the original body.
-		replaceBody(r, buf)
+		ReplaceBody(r, buf)
 		return nil, missingRegion(valid)
 	}
 
 	res, apiErr := validate(name, SourceBody, valid, store)
 	if apiErr != nil {
-		replaceBody(r, buf)
+		ReplaceBody(r, buf)
 		return nil, apiErr
 	}
-	replaceBody(r, newBody)
+	ReplaceBody(r, newBody)
 	return finish(r, res), nil
 }
 
@@ -155,7 +155,7 @@ func readBounded(rc io.ReadCloser, limit int64) (buf []byte, tooBig bool, err er
 // be cleared: a chunked inbound request would otherwise carry the
 // ["chunked"] token through the proxy clone and force the outbound
 // transport to re-chunk, ignoring the recomputed ContentLength.
-func replaceBody(r *http.Request, body []byte) {
+func ReplaceBody(r *http.Request, body []byte) {
 	r.Body = io.NopCloser(bytes.NewReader(body))
 	r.GetBody = func() (io.ReadCloser, error) { return io.NopCloser(bytes.NewReader(body)), nil }
 	r.ContentLength = int64(len(body))

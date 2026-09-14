@@ -47,7 +47,7 @@ func TestHealthz(t *testing.T) {
 
 func TestRegions(t *testing.T) {
 	d, h := newDispatcher(t)
-	srv := httptest.NewServer(Regions(d, h))
+	srv := httptest.NewServer(Regions(d, h, true))
 	defer srv.Close()
 
 	resp, err := http.Get(srv.URL)

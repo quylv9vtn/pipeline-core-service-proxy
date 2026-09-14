@@ -11,15 +11,16 @@ import (
 
 type regionView struct {
 	Name      string     `json:"name"`
-	Endpoint  string     `json:"endpoint"`
+	Endpoint  string     `json:"endpoint,omitempty"`
 	Healthy   *bool      `json:"healthy"`
 	LastCheck *time.Time `json:"last_check"`
 	LastError string     `json:"last_error"`
 }
 
-// Regions lists the configured regions with their endpoints and last
-// probed health (healthy is null until the first probe completes).
-func Regions(d *proxy.Dispatcher, health *proxy.HealthChecker) http.HandlerFunc {
+// Regions lists the configured regions with last probed health.
+// When exposeEndpoints is false the internal upstream endpoint field is
+// omitted (default: hidden from FE to avoid leaking internal service URLs).
+func Regions(d *proxy.Dispatcher, health *proxy.HealthChecker, exposeEndpoints bool) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		statuses := health.Snapshot()
 		targets := d.Targets()
@@ -27,13 +28,16 @@ func Regions(d *proxy.Dispatcher, health *proxy.HealthChecker) http.HandlerFunc 
 		views := make([]regionView, 0, len(targets))
 		for name, t := range targets {
 			st := statuses[name]
-			views = append(views, regionView{
+			v := regionView{
 				Name:      name,
-				Endpoint:  t.Config.Endpoint,
 				Healthy:   st.Healthy,
 				LastCheck: st.LastCheck,
 				LastError: st.LastError,
-			})
+			}
+			if exposeEndpoints {
+				v.Endpoint = t.Config.Endpoint
+			}
+			views = append(views, v)
 		}
 		sort.Slice(views, func(i, j int) bool { return views[i].Name < views[j].Name })
 

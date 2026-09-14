@@ -40,6 +40,26 @@ spec:
           value: /etc/core-gateway/regions.json
         - name: HEALTH_CHECK_INTERVAL_SECONDS
           value: "30"
+        # Sensitive values from the gateway-secrets Secret.
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: pipeline-core-gateway-secrets
+              key: database-url
+        - name: SERVICE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: pipeline-core-gateway-secrets
+              key: service-key
+        # Feature flags — safe to expose in the ConfigMap / env directly.
+        - name: ENFORCER_REQUIRED
+          value: "true"
+        - name: NAMESPACE_CACHE_TTL_SECONDS
+          value: "60"
+        - name: PROVISION_RECONCILE_INTERVAL_SECONDS
+          value: "30"
+        - name: REGIONS_EXPOSE_ENDPOINTS
+          value: "false"
         volumeMounts:
         - name: regions-config
           mountPath: /etc/core-gateway
