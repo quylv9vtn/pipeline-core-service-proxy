@@ -16,8 +16,8 @@ const (
 // Resources are the resolved flavor/image values for one step.
 type Resources struct {
 	ImageURL  string
-	CPU       int
-	MemoryGiB int
+	CPUMilli  int
+	MemoryMiB int
 	GPUModel  string // empty = none ("ai_rtx2080" | "ai_h200")
 	GPUCount  int
 }
@@ -96,8 +96,8 @@ func applyResources(container *yaml.Node, res Resources) {
 	mapSet(container, "image", strNode(res.ImageURL))
 
 	resMap := &yaml.Node{Kind: yaml.MappingNode}
-	cpu := fmt.Sprintf("%d", res.CPU)
-	mem := fmt.Sprintf("%dGi", res.MemoryGiB)
+	cpu := fmt.Sprintf("%dm", res.CPUMilli)
+	mem := fmt.Sprintf("%dMi", res.MemoryMiB)
 	mapSet(resMap, "resourceCpuRequest", strNode(cpu))
 	mapSet(resMap, "resourceCpuLimit", strNode(cpu))
 	mapSet(resMap, "resourceMemoryRequest", strNode(mem))

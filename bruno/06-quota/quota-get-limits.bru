@@ -1,0 +1,24 @@
+meta {
+  name: Get quota limits (single)
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/quota/limits?project_id={{projectId}}
+  body: none
+  auth: none
+}
+
+headers {
+  X-Service-Key: {{serviceKey}}
+  X-Region: {{region}}
+}
+
+docs {
+  QM-CHAIN (X-Service-Key + X-Region, no enforcer). Pass-through to the
+  regional KFP limits endpoint.
+  Response: {"project_id": "...", "limits": {"ai_pipeline_cpu": 4000, "ai_pipeline_memory": 8192, ...}}.
+  Units: cpu in millicores, memory in MiB.
+  Unknown project (no configured limit) → all 0 (enforcement disabled).
+}

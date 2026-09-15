@@ -39,8 +39,8 @@ type Flavor struct {
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
 	RegionName  string    `json:"region_name"`
-	CPU         int       `json:"cpu"`
-	MemoryGiB   int       `json:"memory_gib"`
+	CPUMilli    int       `json:"cpu_milli"`
+	MemoryMiB   int       `json:"memory_mib"`
 	GPUModel    *string   `json:"gpu_model"`
 	GPUCount    int       `json:"gpu_count"`
 	Status      string    `json:"status"`
@@ -84,7 +84,7 @@ type PGStore struct {
 func NewPGStore(pool *pgxpool.Pool) *PGStore { return &PGStore{pool: pool} }
 
 func (s *PGStore) ListFlavors(ctx context.Context, region string, enabledOnly bool) ([]Flavor, error) {
-	q := `SELECT id, name, description, region_name, cpu, memory_gib, gpu_model, gpu_count, status, created_at, updated_at
+	q := `SELECT id, name, description, region_name, cpu_milli, memory_mib, gpu_model, gpu_count, status, created_at, updated_at
 	      FROM flavors WHERE region_name = $1`
 	args := []any{region}
 	if enabledOnly {
@@ -108,29 +108,29 @@ func (s *PGStore) ListFlavors(ctx context.Context, region string, enabledOnly bo
 
 func (s *PGStore) GetFlavor(ctx context.Context, id string) (Flavor, error) {
 	row := s.pool.QueryRow(ctx,
-		`SELECT id, name, description, region_name, cpu, memory_gib, gpu_model, gpu_count, status, created_at, updated_at
+		`SELECT id, name, description, region_name, cpu_milli, memory_mib, gpu_model, gpu_count, status, created_at, updated_at
 		 FROM flavors WHERE id = $1`, id)
 	var f Flavor
-	err := row.Scan(&f.ID, &f.Name, &f.Description, &f.RegionName, &f.CPU, &f.MemoryGiB, &f.GPUModel, &f.GPUCount, &f.Status, &f.CreatedAt, &f.UpdatedAt)
+	err := row.Scan(&f.ID, &f.Name, &f.Description, &f.RegionName, &f.CPUMilli, &f.MemoryMiB, &f.GPUModel, &f.GPUCount, &f.Status, &f.CreatedAt, &f.UpdatedAt)
 	return f, mapErr(err)
 }
 
 func (s *PGStore) CreateFlavor(ctx context.Context, f Flavor) (Flavor, error) {
 	row := s.pool.QueryRow(ctx, `
-		INSERT INTO flavors (id, region_name, name, description, cpu, memory_gib, gpu_model, gpu_count, status)
+		INSERT INTO flavors (id, region_name, name, description, cpu_milli, memory_mib, gpu_model, gpu_count, status)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-		RETURNING id, name, description, region_name, cpu, memory_gib, gpu_model, gpu_count, status, created_at, updated_at`,
-		f.ID, f.RegionName, f.Name, f.Description, f.CPU, f.MemoryGiB, f.GPUModel, f.GPUCount, f.Status)
+		RETURNING id, name, description, region_name, cpu_milli, memory_mib, gpu_model, gpu_count, status, created_at, updated_at`,
+		f.ID, f.RegionName, f.Name, f.Description, f.CPUMilli, f.MemoryMiB, f.GPUModel, f.GPUCount, f.Status)
 	return scanFlavor(row)
 }
 
 func (s *PGStore) UpdateFlavor(ctx context.Context, f Flavor) (Flavor, error) {
 	row := s.pool.QueryRow(ctx, `
-		UPDATE flavors SET name = $2, description = $3, cpu = $4, memory_gib = $5,
+		UPDATE flavors SET name = $2, description = $3, cpu_milli = $4, memory_mib = $5,
 		                   gpu_model = $6, gpu_count = $7, status = $8, updated_at = now()
 		WHERE id = $1
-		RETURNING id, name, description, region_name, cpu, memory_gib, gpu_model, gpu_count, status, created_at, updated_at`,
-		f.ID, f.Name, f.Description, f.CPU, f.MemoryGiB, f.GPUModel, f.GPUCount, f.Status)
+		RETURNING id, name, description, region_name, cpu_milli, memory_mib, gpu_model, gpu_count, status, created_at, updated_at`,
+		f.ID, f.Name, f.Description, f.CPUMilli, f.MemoryMiB, f.GPUModel, f.GPUCount, f.Status)
 	return scanFlavor(row)
 }
 
@@ -209,7 +209,7 @@ func (s *PGStore) DeleteImage(ctx context.Context, id string) error {
 
 func scanFlavor(row pgx.Row) (Flavor, error) {
 	var f Flavor
-	err := row.Scan(&f.ID, &f.Name, &f.Description, &f.RegionName, &f.CPU, &f.MemoryGiB, &f.GPUModel, &f.GPUCount, &f.Status, &f.CreatedAt, &f.UpdatedAt)
+	err := row.Scan(&f.ID, &f.Name, &f.Description, &f.RegionName, &f.CPUMilli, &f.MemoryMiB, &f.GPUModel, &f.GPUCount, &f.Status, &f.CreatedAt, &f.UpdatedAt)
 	return f, mapErr(err)
 }
 

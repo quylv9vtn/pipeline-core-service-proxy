@@ -1,0 +1,38 @@
+meta {
+  name: Put quota limits
+  type: http
+  seq: 1
+}
+
+put {
+  url: {{baseUrl}}/quota/limits
+  body: json
+  auth: none
+}
+
+headers {
+  X-Service-Key: {{serviceKey}}
+  X-Region: {{region}}
+}
+
+body:json {
+  {
+    "project_id": "{{projectId}}",
+    "limits": {
+      "ai_pipeline_cpu": 4000,
+      "ai_pipeline_memory": 8192,
+      "ai_pipeline_gpu_rtx2080": 0,
+      "ai_pipeline_gpu_h200": 0
+    }
+  }
+}
+
+docs {
+  QM-CHAIN (X-Service-Key + X-Region, no enforcer). Pass-through to the
+  regional KFP quota endpoint. Full snapshot contract: always send all 4
+  pipeline codes — never a per-code subset, or missing codes are zeroed.
+  CMP pushes this on activation and on every QuotaLimitsAppliedEvent.
+
+  Units: ai_pipeline_cpu in millicores (4000 = 4 cores),
+         ai_pipeline_memory in MiB (8192 = 8 GiB).
+}

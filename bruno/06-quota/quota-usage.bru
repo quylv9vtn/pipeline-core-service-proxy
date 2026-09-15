@@ -1,0 +1,25 @@
+meta {
+  name: Get quota usage (single)
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/quota/usage?project_id={{projectId}}
+  body: none
+  auth: none
+}
+
+headers {
+  X-Service-Key: {{serviceKey}}
+  X-Region: {{region}}
+}
+
+docs {
+  QM-CHAIN (X-Service-Key + X-Region, no enforcer). Pass-through to the
+  regional KFP usage endpoint — single-project variant of usage/bulk.
+  Response: {"project_id": "...", "used": {"ai_pipeline_cpu": 12, ...}}.
+  "used" only counts active (non-terminal) Runs/Jobs; unknown project → all 0.
+  NOTE: there is no "GET limits" in the contract — limits are pushed by CMP
+  (PUT /quota/limits) and stored authoritatively in CMP DB.
+}

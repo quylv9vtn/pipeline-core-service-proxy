@@ -17,7 +17,7 @@ headers {
   Project-ID: {{projectId}}
 }
 
-body:multipartForm {
+body:multipart-form {
   uploadfile: @file(hello-world.yaml)
   name: hello-world
   steps: {"hello-world": {"flavor_id": "{{flavorId}}", "image_id": "{{imageId}}"}}

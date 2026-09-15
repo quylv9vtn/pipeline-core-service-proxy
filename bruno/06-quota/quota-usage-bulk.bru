@@ -1,0 +1,29 @@
+meta {
+  name: Get quota usage (bulk)
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/quota/usage/bulk
+  body: json
+  auth: none
+}
+
+headers {
+  X-Service-Key: {{serviceKey}}
+  X-Region: {{region}}
+}
+
+body:json {
+  {
+    "project_ids": ["{{projectId}}"]
+  }
+}
+
+docs {
+  QM-CHAIN (X-Service-Key + X-Region, no enforcer). Pass-through to the
+  regional KFP usage endpoint. This is how CMP reads quota usage back:
+  ai_pipeline.tasks polls this in batches and writes "used" into CMP Quota rows.
+  Response: {"results": [{"project_id": "...", "used": {"ai_pipeline_cpu": 1, ...}}]}.
+}

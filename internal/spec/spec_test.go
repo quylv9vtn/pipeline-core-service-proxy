@@ -97,7 +97,7 @@ func TestResolveRewrite(t *testing.T) {
 
 	gpu := "ai_h200"
 	lookup := &fakeLookup{res: Resources{
-		ImageURL: "registry/train:2.0", CPU: 8, MemoryGiB: 32, GPUModel: gpu, GPUCount: 2,
+		ImageURL: "registry/train:2.0", CPUMilli: 8000, MemoryMiB: 32768, GPUModel: gpu, GPUCount: 2,
 	}}
 	selections := map[string]StepSelection{
 		"preprocess": {FlavorID: "f1", ImageID: "i1"},
@@ -110,8 +110,8 @@ func TestResolveRewrite(t *testing.T) {
 	require.NoError(t, err)
 	text := string(rewritten)
 	assert.Contains(t, text, "image: registry/train:2.0")
-	assert.Contains(t, text, "resourceCpuRequest: \"8\"")
-	assert.Contains(t, text, "resourceMemoryLimit: 32Gi")
+	assert.Contains(t, text, "resourceCpuRequest: 8000m")
+	assert.Contains(t, text, "resourceMemoryLimit: 32768Mi")
 	assert.Contains(t, text, "resourceType: NVIDIA-H200")
 	assert.Contains(t, text, "resourceCount: \"2\"")
 	assert.Contains(t, text, "pipelineInfo:", "key order preserved")

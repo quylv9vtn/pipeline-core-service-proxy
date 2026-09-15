@@ -121,7 +121,7 @@ func (f *fakeStore) DeleteImage(_ context.Context, id string) error {
 
 func TestValidateFlavor(t *testing.T) {
 	gpu := GPUModelH200
-	valid := Flavor{Name: "f1", RegionName: "vn-north-1", CPU: 4, MemoryGiB: 16, Status: StatusEnabled}
+	valid := Flavor{Name: "f1", RegionName: "vn-north-1", CPUMilli: 4000, MemoryMiB: 16384, Status: StatusEnabled}
 
 	t.Run("valid without gpu", func(t *testing.T) {
 		f := valid
@@ -150,7 +150,7 @@ func TestValidateFlavor(t *testing.T) {
 	})
 	t.Run("cpu below 1 rejected", func(t *testing.T) {
 		f := valid
-		f.CPU = 0
+		f.CPUMilli = 0
 		assert.Error(t, ValidateFlavor(f))
 	})
 	t.Run("missing name rejected", func(t *testing.T) {
@@ -174,9 +174,9 @@ func testRegionCtx(r *http.Request, regionName string) *http.Request {
 
 func TestFEListFlavors(t *testing.T) {
 	store := &fakeStore{flavors: []Flavor{
-		{ID: "1", Name: "enabled-a", RegionName: "vn-north-1", CPU: 2, MemoryGiB: 4, Status: StatusEnabled},
-		{ID: "2", Name: "disabled-b", RegionName: "vn-north-1", CPU: 8, MemoryGiB: 8, Status: StatusDisabled},
-		{ID: "3", Name: "other-region", RegionName: "vn-north-2", CPU: 1, MemoryGiB: 1, Status: StatusEnabled},
+		{ID: "1", Name: "enabled-a", RegionName: "vn-north-1", CPUMilli: 2000, MemoryMiB: 4096, Status: StatusEnabled},
+		{ID: "2", Name: "disabled-b", RegionName: "vn-north-1", CPUMilli: 8000, MemoryMiB: 8192, Status: StatusDisabled},
+		{ID: "3", Name: "other-region", RegionName: "vn-north-2", CPUMilli: 1000, MemoryMiB: 1024, Status: StatusEnabled},
 	}}
 
 	req := testRegionCtx(httptest.NewRequest(http.MethodGet, "/apis/v2beta1/flavors", nil), "vn-north-1")
@@ -215,7 +215,7 @@ func TestAdminFlavorCRUD(t *testing.T) {
 	r.HandleFunc("/apis/v2beta1/admin/flavors/{id}", AdminDeleteFlavor(store)).Methods(http.MethodDelete)
 
 	gpu := GPUModelRTX2080
-	payload := `{"name":"rtx-basic","region_name":"vn-north-1","description":"d","cpu":4,"memory_gib":16,"gpu_model":"ai_rtx2080","gpu_count":1}`
+	payload := `{"name":"rtx-basic","region_name":"vn-north-1","description":"d","cpu_milli":4000,"memory_mib":16384,"gpu_model":"ai_rtx2080","gpu_count":1}`
 	req := httptest.NewRequest(http.MethodPost, "/apis/v2beta1/admin/flavors", strings.NewReader(payload))
 	rec := httptest.NewRecorder()
 	r.ServeHTTP(rec, req)
@@ -229,14 +229,14 @@ func TestAdminFlavorCRUD(t *testing.T) {
 
 	// Invalid payload: gpu_model without count.
 	req = httptest.NewRequest(http.MethodPost, "/apis/v2beta1/admin/flavors",
-		strings.NewReader(`{"name":"bad","region_name":"vn-north-1","cpu":1,"memory_gib":1,"gpu_model":"ai_h200","gpu_count":0}`))
+		strings.NewReader(`{"name":"bad","region_name":"vn-north-1","cpu_milli":1000,"memory_mib":1024,"gpu_model":"ai_h200","gpu_count":0}`))
 	rec = httptest.NewRecorder()
 	r.ServeHTTP(rec, req)
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
 
 	// Update: disable.
 	req = httptest.NewRequest(http.MethodPut, "/apis/v2beta1/admin/flavors/"+created.ID,
-		strings.NewReader(`{"name":"rtx-basic","cpu":4,"memory_gib":16,"gpu_model":"ai_rtx2080","gpu_count":1,"status":"disabled"}`))
+		strings.NewReader(`{"name":"rtx-basic","cpu_milli":4000,"memory_mib":16384,"gpu_model":"ai_rtx2080","gpu_count":1,"status":"disabled"}`))
 	rec = httptest.NewRecorder()
 	r.ServeHTTP(rec, req)
 	require.Equal(t, http.StatusOK, rec.Code)

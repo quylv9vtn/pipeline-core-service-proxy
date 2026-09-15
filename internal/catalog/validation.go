@@ -25,11 +25,11 @@ func ValidateFlavor(f Flavor) error {
 	if strings.TrimSpace(f.RegionName) == "" {
 		return fmt.Errorf("region_name is required")
 	}
-	if f.CPU < 1 {
-		return fmt.Errorf("cpu must be >= 1")
+	if f.CPUMilli < 1 {
+		return fmt.Errorf("cpu_milli must be >= 1")
 	}
-	if f.MemoryGiB < 1 {
-		return fmt.Errorf("memory_gib must be >= 1")
+	if f.MemoryMiB < 1 {
+		return fmt.Errorf("memory_mib must be >= 1")
 	}
 	if (f.GPUModel == nil || *f.GPUModel == "") != (f.GPUCount == 0) {
 		return fmt.Errorf("gpu_model and gpu_count must either both be set or both be empty")

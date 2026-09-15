@@ -28,8 +28,8 @@ func (r *SpecResolver) Resolve(ctx context.Context, regionName, flavorID, imageI
 	}
 	res := spec.Resources{
 		ImageURL:  image.ImageURL,
-		CPU:       flavor.CPU,
-		MemoryGiB: flavor.MemoryGiB,
+		CPUMilli:  flavor.CPUMilli,
+		MemoryMiB: flavor.MemoryMiB,
 		GPUCount:  flavor.GPUCount,
 	}
 	if flavor.GPUModel != nil {

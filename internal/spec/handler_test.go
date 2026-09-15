@@ -18,7 +18,7 @@ import (
 type okLookup struct{}
 
 func (okLookup) Resolve(_ context.Context, _, _, _ string) (Resources, error) {
-	return Resources{ImageURL: "registry/img:9", CPU: 2, MemoryGiB: 4}, nil
+	return Resources{ImageURL: "registry/img:9", CPUMilli: 2000, MemoryMiB: 4096}, nil
 }
 
 func buildUpload(t *testing.T, specYAML, steps string) *http.Request {
