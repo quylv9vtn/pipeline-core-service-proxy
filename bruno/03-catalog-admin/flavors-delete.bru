@@ -1,0 +1,15 @@
+meta {
+  name: Admin delete flavor
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{baseUrl}}/apis/v2beta1/admin/flavors/{{flavorId}}
+  body: none
+  auth: none
+}
+
+headers {
+  X-Service-Key: {{serviceKey}}
+}

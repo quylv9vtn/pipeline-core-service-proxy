@@ -1,0 +1,19 @@
+meta {
+  name: Admin list images
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/apis/v2beta1/admin/images?region={{region}}
+  body: none
+  auth: none
+}
+
+headers {
+  X-Service-Key: {{serviceKey}}
+}
+
+docs {
+  Returns ALL statuses (enabled + disabled) of the region. ?region= required.
+}

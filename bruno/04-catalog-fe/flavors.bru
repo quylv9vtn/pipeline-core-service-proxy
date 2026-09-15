@@ -1,0 +1,22 @@
+meta {
+  name: FE list flavors
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/apis/v2beta1/flavors
+  body: none
+  auth: none
+}
+
+headers {
+  X-Region: {{region}}
+  X-CMP-User-GID: {{userGid}}
+  X-CMP-Project-ID: {{projectId}}
+}
+
+docs {
+  FE catalog read: enabled-only rows of the X-Region region.
+  Requires enforcer headers (X-CMP-User-GID + X-CMP-Project-ID), no Project-ID.
+}

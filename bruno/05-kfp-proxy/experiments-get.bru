@@ -1,0 +1,24 @@
+meta {
+  name: Get experiment
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/apis/v2beta1/experiments/{{experimentId}}
+  body: none
+  auth: none
+}
+
+headers {
+  X-Region: {{region}}
+  X-CMP-User-GID: {{userGid}}
+  X-CMP-Project-ID: {{projectId}}
+  Project-ID: {{projectId}}
+}
+
+docs {
+  Single-resource fetch: the gateway buffers the response and returns 404
+  if the resource's namespace differs from the project's (no existence leak).
+  Set experimentId in the environment from a create/list response.
+}

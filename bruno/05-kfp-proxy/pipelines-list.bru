@@ -1,0 +1,18 @@
+meta {
+  name: List pipelines
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/apis/v2beta1/pipelines?page_size=20
+  body: none
+  auth: none
+}
+
+headers {
+  X-Region: {{region}}
+  X-CMP-User-GID: {{userGid}}
+  X-CMP-Project-ID: {{projectId}}
+  Project-ID: {{projectId}}
+}

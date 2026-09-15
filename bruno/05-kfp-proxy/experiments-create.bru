@@ -1,0 +1,30 @@
+meta {
+  name: Create experiment
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/apis/v2beta1/experiments
+  body: json
+  auth: none
+}
+
+headers {
+  X-Region: {{region}}
+  X-CMP-User-GID: {{userGid}}
+  X-CMP-Project-ID: {{projectId}}
+  Project-ID: {{projectId}}
+}
+
+body:json {
+  {
+    "name": "demo-experiment",
+    "description": "created via pipeline-core-gateway"
+  }
+}
+
+docs {
+  The gateway injects the top-level "namespace" field from Project-ID,
+  so do NOT send namespace yourself. 412 = project not provisioned in region.
+}

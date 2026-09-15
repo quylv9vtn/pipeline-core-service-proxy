@@ -1,0 +1,22 @@
+meta {
+  name: List runs
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{baseUrl}}/apis/v2beta1/runs?page_size=20
+  body: none
+  auth: none
+}
+
+headers {
+  X-Region: {{region}}
+  X-CMP-User-GID: {{userGid}}
+  X-CMP-Project-ID: {{projectId}}
+  Project-ID: {{projectId}}
+}
+
+docs {
+  List: the gateway injects ?namespace=.
+}

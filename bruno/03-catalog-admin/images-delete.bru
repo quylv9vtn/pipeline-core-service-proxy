@@ -1,0 +1,15 @@
+meta {
+  name: Admin delete image
+  type: http
+  seq: 9
+}
+
+delete {
+  url: {{baseUrl}}/apis/v2beta1/admin/images/{{imageId}}
+  body: none
+  auth: none
+}
+
+headers {
+  X-Service-Key: {{serviceKey}}
+}

@@ -1,0 +1,29 @@
+meta {
+  name: Admin create flavor (CPU)
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/apis/v2beta1/admin/flavors
+  body: json
+  auth: none
+}
+
+headers {
+  X-Service-Key: {{serviceKey}}
+}
+
+body:json {
+  {
+    "name": "cpu-small",
+    "description": "2 vCPU, 8 GiB, no GPU",
+    "region_name": "{{region}}",
+    "cpu": 2,
+    "memory_gib": 8
+  }
+}
+
+docs {
+  CPU-only flavor: omit gpu_model and gpu_count entirely (both empty).
+}

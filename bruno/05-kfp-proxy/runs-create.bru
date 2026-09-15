@@ -1,0 +1,39 @@
+meta {
+  name: Create run
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseUrl}}/apis/v2beta1/runs
+  body: json
+  auth: none
+}
+
+headers {
+  X-Region: {{region}}
+  X-CMP-User-GID: {{userGid}}
+  X-CMP-Project-ID: {{projectId}}
+  Project-ID: {{projectId}}
+}
+
+body:json {
+  {
+    "name": "demo-run",
+    "experiment_id": "{{experimentId}}",
+    "pipeline_spec": {
+      "pipeline_id": "{{pipelineId}}"
+    },
+    "runtime_config": {
+      "parameter_values": {
+        "message": "hello run"
+      }
+    }
+  }
+}
+
+docs {
+  KFP 2.x v2beta1 shape (verify field names against /swagger if needed).
+  No namespace injection: KFP derives it from experiment_id — the experiment
+  must belong to the calling project (namespace check applies to the GET).
+}

@@ -1,0 +1,30 @@
+meta {
+  name: Admin create image
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/apis/v2beta1/admin/images
+  body: json
+  auth: none
+}
+
+headers {
+  X-Service-Key: {{serviceKey}}
+}
+
+body:json {
+  {
+    "name": "pytorch-train",
+    "description": "PyTorch training image",
+    "region_name": "{{region}}",
+    "version": "2.3.0-cuda12.1",
+    "image_url": "harbor-local.aiplatformdev.freeddns.org/ai-platform/pytorch:2.3.0-cuda12.1",
+    "status": "enabled"
+  }
+}
+
+docs {
+  Unique per region: (region_name, name, version). Server assigns id (UUID).
+}

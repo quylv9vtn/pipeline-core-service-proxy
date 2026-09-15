@@ -10,4 +10,4 @@ patches:
     name: pipeline-core-service
 images:
 - name: harbor-local.aiplatformdev.freeddns.org/ai-platform/pipeline/pipeline-core-service
-  newTag: 20260914-initial
+  newTag: v0.1.0

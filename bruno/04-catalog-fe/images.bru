@@ -1,0 +1,22 @@
+meta {
+  name: FE list images
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/apis/v2beta1/images
+  body: none
+  auth: none
+}
+
+headers {
+  X-Region: {{region}}
+  X-CMP-User-GID: {{userGid}}
+  X-CMP-Project-ID: {{projectId}}
+}
+
+docs {
+  FE catalog read: enabled-only rows of the X-Region region.
+  Requires enforcer headers, no Project-ID.
+}

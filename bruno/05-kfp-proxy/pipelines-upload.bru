@@ -1,0 +1,37 @@
+meta {
+  name: Upload pipeline (spec rewrite)
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/apis/v2beta1/pipelines/upload
+  body: multipartForm
+  auth: none
+}
+
+headers {
+  X-Region: {{region}}
+  X-CMP-User-GID: {{userGid}}
+  X-CMP-Project-ID: {{projectId}}
+  Project-ID: {{projectId}}
+}
+
+body:multipartForm {
+  uploadfile: @file(hello-world.yaml)
+  name: hello-world
+  steps: {"hello-world": {"flavor_id": "{{flavorId}}", "image_id": "{{imageId}}"}}
+}
+
+docs {
+  Multipart upload with spec resolution:
+  - uploadfile: KFP IR YAML (schemaVersion 2.x). @file paths resolve relative
+    to the collection root (bruno/hello-world.yaml). If Bruno can't find it,
+    re-select the file in the UI once.
+  - steps: JSON map of DAG task name (or executor label) -> {flavor_id, image_id}.
+    Both rows must exist, be enabled, and belong to the X-Region region.
+  The gateway rewrites executor image/resources in the IR, injects ?namespace=,
+  then forwards the rebuilt multipart to the regional KFP.
+  Keys of "steps" must cover every container task — missing/unknown/ambiguous
+  step names are rejected with 400.
+}

@@ -1,0 +1,30 @@
+meta {
+  name: Admin update image
+  type: http
+  seq: 8
+}
+
+put {
+  url: {{baseUrl}}/apis/v2beta1/admin/images/{{imageId}}
+  body: json
+  auth: none
+}
+
+headers {
+  X-Service-Key: {{serviceKey}}
+}
+
+body:json {
+  {
+    "name": "pytorch-train",
+    "description": "PyTorch training image (updated)",
+    "version": "2.3.0-cuda12.1",
+    "image_url": "harbor-local.aiplatformdev.freeddns.org/ai-platform/pytorch:2.3.0-cuda12.1",
+    "status": "disabled"
+  }
+}
+
+docs {
+  region_name is immutable (taken from the existing row).
+  Omit "status" to keep the current one.
+}

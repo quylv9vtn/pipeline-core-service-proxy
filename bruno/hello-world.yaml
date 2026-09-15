@@ -1,0 +1,41 @@
+# Minimal KFP IR (schemaVersion 2.x) sample used by the upload requests.
+# The gateway rewrites executor resources (image / cpu / memory / gpu)
+# from the "steps" multipart field before forwarding to the regional KFP.
+components:
+  comp-hello-world:
+    executorLabel: exec-hello-world
+    inputDefinitions:
+      parameters:
+        message:
+          parameterType: STRING
+deploymentSpec:
+  executors:
+    exec-hello-world:
+      container:
+        command:
+          - echo
+        args:
+          - '{{$.inputs.parameters.message}}'
+        image: alpine:3.19
+pipelineInfo:
+  name: hello-world
+root:
+  dag:
+    tasks:
+      hello-world:
+        cachingOptions:
+          enableCache: true
+        componentRef:
+          name: comp-hello-world
+        inputs:
+          parameters:
+            message:
+              componentInputParameter: message
+        taskInfo:
+          name: hello-world
+  inputDefinitions:
+    parameters:
+      message:
+        defaultValue: hello from the gateway
+        parameterType: STRING
+schemaVersion: 2.1.0

@@ -1,0 +1,30 @@
+meta {
+  name: Activate project (provision)
+  type: http
+  seq: 1
+}
+
+put {
+  url: {{baseUrl}}/apis/v2beta1/projects
+  body: json
+  auth: none
+}
+
+headers {
+  X-Service-Key: {{serviceKey}}
+}
+
+body:json {
+  {
+    "project_id": "{{projectId}}",
+    "name": "{{projectSlug}}",
+    "region": "{{region}}",
+    "namespace": "{{namespace}}"
+  }
+}
+
+docs {
+  CMP service activation. Idempotent get-or-create of (project, region) -> namespace.
+  namespace must be '{slug}-pipeline' (<= 63 chars, RFC 1123).
+  201 = created, 200 = already present. Guarded by X-Service-Key only (no region middleware).
+}

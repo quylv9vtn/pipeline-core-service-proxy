@@ -1,0 +1,47 @@
+meta {
+  name: Create recurring run
+  type: http
+  seq: 12
+}
+
+post {
+  url: {{baseUrl}}/apis/v2beta1/recurringruns
+  body: json
+  auth: none
+}
+
+headers {
+  X-Region: {{region}}
+  X-CMP-User-GID: {{userGid}}
+  X-CMP-Project-ID: {{projectId}}
+  Project-ID: {{projectId}}
+}
+
+body:json {
+  {
+    "name": "demo-recurring",
+    "display_name": "demo-recurring",
+    "experiment_id": "{{experimentId}}",
+    "enabled": true,
+    "no_catchup": true,
+    "max_concurrent_run_count": "1",
+    "mode": "MODE_ENABLE",
+    "recurrence": {
+      "period": "1",
+      "cron": "0 */1 * * *"
+    },
+    "pipeline_spec": {
+      "pipeline_id": "{{pipelineId}}"
+    },
+    "runtime_config": {
+      "parameter_values": {
+        "message": "hello recurring"
+      }
+    }
+  }
+}
+
+docs {
+  The gateway injects the top-level "namespace" field. Verify field names
+  against the regional KFP swagger if your version differs.
+}

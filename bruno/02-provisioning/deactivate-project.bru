@@ -1,0 +1,20 @@
+meta {
+  name: Deactivate project
+  type: http
+  seq: 2
+}
+
+delete {
+  url: {{baseUrl}}/apis/v2beta1/projects/{{projectId}}?region={{region}}
+  body: none
+  auth: none
+}
+
+headers {
+  X-Service-Key: {{serviceKey}}
+}
+
+docs {
+  CMP service deactivation. Idempotent: 204 always when the request succeeds
+  (also when the mapping does not exist). Requires ?region=.
+}

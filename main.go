@@ -261,6 +261,15 @@ func buildRouter(
 		withRegion(withEnforcer(withNamespace(dispatcher))),
 	))
 
+	// QM-CHAIN: quota pass-through — region + service-key only. CMP calls
+	// these service-to-service with the region identified via X-Region;
+	// the enforcer assertion and namespace resolution do not apply
+	// (quota is addressed by project_id in the body).
+	qChain := middleware.Logging(middleware.Recovery(
+		withRegion(withServiceKey(dispatcher)),
+	))
+	router.PathPrefix("/quota").Handler(qChain)
+
 	// K-CHAIN upload: spec-rewriting handler for multipart pipeline upload.
 	// Namespace middleware runs first (injects ?namespace= query param), then
 	// the Uploader rewrites the YAML spec and calls Forward (dispatcher).

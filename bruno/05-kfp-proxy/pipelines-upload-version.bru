@@ -1,0 +1,30 @@
+meta {
+  name: Upload pipeline version
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/apis/v2beta1/pipelines/upload_version
+  body: multipartForm
+  auth: none
+}
+
+headers {
+  X-Region: {{region}}
+  X-CMP-User-GID: {{userGid}}
+  X-CMP-Project-ID: {{projectId}}
+  Project-ID: {{projectId}}
+}
+
+body:multipartForm {
+  uploadfile: @file(hello-world.yaml)
+  name: hello-world-v2
+  pipeline_id: {{pipelineId}}
+  steps: {"hello-world": {"flavor_id": "{{flavorId}}", "image_id": "{{imageId}}"}}
+}
+
+docs {
+  No namespace injection (the version inherits the parent pipeline's).
+  pipeline_id must belong to the calling project.
+}

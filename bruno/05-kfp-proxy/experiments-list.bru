@@ -1,0 +1,22 @@
+meta {
+  name: List experiments
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/apis/v2beta1/experiments?page_size=20
+  body: none
+  auth: none
+}
+
+headers {
+  X-Region: {{region}}
+  X-CMP-User-GID: {{userGid}}
+  X-CMP-Project-ID: {{projectId}}
+  Project-ID: {{projectId}}
+}
+
+docs {
+  The gateway appends ?namespace= (injected), scoped to the project.
+}

@@ -1,0 +1,32 @@
+meta {
+  name: Admin update flavor
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseUrl}}/apis/v2beta1/admin/flavors/{{flavorId}}
+  body: json
+  auth: none
+}
+
+headers {
+  X-Service-Key: {{serviceKey}}
+}
+
+body:json {
+  {
+    "name": "gpu-rtx2080-2x",
+    "description": "2x RTX 2080, 16 vCPU, 64 GiB (updated)",
+    "cpu": 16,
+    "memory_gib": 64,
+    "gpu_model": "ai_rtx2080",
+    "gpu_count": 2,
+    "status": "disabled"
+  }
+}
+
+docs {
+  region_name is immutable (taken from the existing row).
+  Omit "status" to keep the current one.
+}
