@@ -1,0 +1,24 @@
+meta {
+  name: Disable recurring run
+  type: http
+  seq: 28
+}
+
+post {
+  url: {{baseUrl}}/apis/v2beta1/recurringruns/{{recurringRunId}}:disable
+  body: none
+  auth: none
+}
+
+headers {
+  X-Region: {{region}}
+  X-CMP-User-GID: {{userGid}}
+  X-CMP-Project-ID: {{projectId}}
+  Project-ID: {{projectId}}
+}
+
+docs {
+  KFP v2beta1 DisableRecurringRun (recurring_run.proto:67):
+  POST /recurringruns/{recurring_run_id}:disable. Empty body. The recurring
+  run won't schedule new runs while disabled.
+}

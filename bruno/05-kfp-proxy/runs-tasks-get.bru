@@ -1,0 +1,23 @@
+meta {
+  name: Get run task
+  type: http
+  seq: 20
+}
+
+get {
+  url: {{baseUrl}}/apis/v2beta1/runs/{{runId}}/tasks/REPLACE_ME
+  body: none
+  auth: none
+}
+
+headers {
+  X-Region: {{region}}
+  X-CMP-User-GID: {{userGid}}
+  X-CMP-Project-ID: {{projectId}}
+  Project-ID: {{projectId}}
+}
+
+docs {
+  KFP v2beta1 GetRunTask (run.proto:119): GET /runs/{run_id}/tasks/{task_id}.
+  task_id from the run's task_details (or the tasks list).
+}

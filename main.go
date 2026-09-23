@@ -17,6 +17,7 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"syscall"
@@ -276,6 +277,13 @@ func buildRouter(
 	uploader := &spec.Uploader{
 		Lookup:  specResolver,
 		Forward: dispatcher.ServeHTTP,
+		Lister: &spec.KFPLister{Target: func(regionName string) (*url.URL, *http.Client, bool) {
+			t, ok := dispatcher.Target(regionName)
+			if !ok {
+				return nil, nil, false
+			}
+			return t.URL, t.Client, true
+		}},
 	}
 	kUpload := middleware.Logging(middleware.Recovery(
 		withRegion(withEnforcer(withNamespace(http.HandlerFunc(uploader.HandleUpload)))),

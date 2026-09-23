@@ -2,6 +2,7 @@ package spec
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"net/http"
 
@@ -16,7 +17,15 @@ type Uploader struct {
 	Lookup ResourceLookup
 	// Forward proxies the (rewritten) request to the region's KFP.
 	Forward func(w http.ResponseWriter, r *http.Request)
+	// Lister checks display_name uniqueness in the project namespace. Nil
+	// disables the check (name/display_name then pass through verbatim).
+	Lister PipelineLister
 }
+
+// uploadPipelinePath is the pipeline-upload route served by HandleUpload;
+// upload_version shares the handler but skips the name/display_name
+// resolution (versions inherit their parent pipeline's identity).
+const uploadPipelinePath = "/apis/v2beta1/pipelines/upload"
 
 // HandleUpload serves POST /pipelines/upload and /pipelines/upload_version:
 // the gateway's only body-mutating path (requirements §9.1). Pipeline:
@@ -66,6 +75,16 @@ func (u *Uploader) HandleUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Name resolution runs last: only valid, fully-resolved uploads spend
+	// the KFP list call it may make (display-name uniqueness check).
+	if r.URL.Path == uploadPipelinePath {
+		if apiErr := u.resolveUploadNames(r, up); apiErr != nil {
+			apiErr.Write(w)
+			return
+		}
+	}
+	up.MoveFieldsToQuery(r)
+
 	body, contentType, err := up.BuildUpstream(rewritten)
 	if err != nil {
 		(&region.APIError{Status: http.StatusInternalServerError, Code: "internal_error",
@@ -96,4 +115,48 @@ func writeSpecError(w http.ResponseWriter, err error) {
 		Code:    "internal_error",
 		Message: "Spec processing failed.",
 	}).Write(w)
+}
+
+// resolveUploadNames enforces the project-level display-name contract on
+// POST /pipelines/upload:
+//
+//   - display_name is unique per project namespace — a duplicate aborts the
+//     upload with a specific 409 before anything reaches KFP;
+//   - when the client does not pin a name, it is generated as
+//     slug(display_name)+random so re-uploads never collide on the unique
+//     name column either.
+//
+// The resolved values are written back into the form fields, which
+// MoveFieldsToQuery then promotes to KFP's query params. An explicit query
+// param still wins over everything (MoveFieldsToQuery precedence).
+func (u *Uploader) resolveUploadNames(r *http.Request, up *Upload) *region.APIError {
+	displayName := firstField(up.Fields, "display_name", "name")
+	if displayName == "" {
+		displayName = specStem(up.SpecName)
+	}
+	name := firstField(up.Fields, "name")
+
+	if u.Lister != nil {
+		res, _ := region.FromContext(r.Context())
+		existing, err := u.Lister.ListDisplayNames(r.Context(), res.Name, r.URL.Query().Get("namespace"))
+		if err != nil {
+			glog.Errorf("upload %s: list existing pipelines failed: %v", r.URL.Path, err)
+			return region.UpstreamUnavailable(res.Name, err)
+		}
+		if _, dup := existing[displayName]; dup {
+			return &region.APIError{
+				Status: http.StatusConflict,
+				Code:   "display_name_already_exists",
+				Message: fmt.Sprintf("A pipeline with display name %q already exists in this project. "+
+					"Display names must be unique — please choose another name, or upload a new version of the existing pipeline.", displayName),
+			}
+		}
+	}
+
+	if name == "" {
+		name = Slugify(displayName) + "-" + randSuffix()
+	}
+	up.Fields["name"] = []string{name}
+	up.Fields["display_name"] = []string{displayName}
+	return nil
 }

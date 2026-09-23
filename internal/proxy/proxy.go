@@ -26,6 +26,10 @@ type Target struct {
 	Config config.RegionConfig
 	URL    *url.URL
 	Proxy  *httputil.ReverseProxy
+	// Client performs direct server-to-server calls to the same upstream
+	// (same transport/TLS as the proxy) — e.g. the upload handler's
+	// display-name uniqueness lookup.
+	Client *http.Client
 }
 
 // Dispatcher owns the current region→proxy table and forwards requests.
@@ -134,6 +138,7 @@ func newTarget(name string, rc config.RegionConfig) (*Target, error) {
 		TLSClientConfig:       &tls.Config{InsecureSkipVerify: rc.InsecureSkipVerify}, //nolint:gosec // opt-in per region for self-signed endpoints
 	}
 	target := &Target{Name: name, Config: rc, URL: u}
+	target.Client = &http.Client{Transport: transport, Timeout: 30 * time.Second}
 	target.Proxy = &httputil.ReverseProxy{
 		Rewrite: func(pr *httputil.ProxyRequest) {
 			pr.SetURL(u) // also rewrites Out.Host to the target's host

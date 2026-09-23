@@ -1,0 +1,24 @@
+meta {
+  name: Get run execution
+  type: http
+  seq: 16
+}
+
+get {
+  url: {{baseUrl}}/apis/v2beta1/runs/{{runId}}/executions/REPLACE_ME
+  body: none
+  auth: none
+}
+
+headers {
+  X-Region: {{region}}
+  X-CMP-User-GID: {{userGid}}
+  X-CMP-Project-ID: {{projectId}}
+  Project-ID: {{projectId}}
+}
+
+docs {
+  KFP v2beta1 GetRunExecution (run.proto:89): GET /runs/{run_id}/executions/{execution_id}.
+  execution_id is the numeric MLMD execution id (see task_details[].execution_id
+  of the run, or the executions list).
+}

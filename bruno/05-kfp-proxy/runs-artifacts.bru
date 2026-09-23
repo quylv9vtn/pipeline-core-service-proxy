@@ -1,0 +1,22 @@
+meta {
+  name: List run artifacts
+  type: http
+  seq: 17
+}
+
+get {
+  url: {{baseUrl}}/apis/v2beta1/runs/{{runId}}/artifacts
+  body: none
+  auth: none
+}
+
+headers {
+  X-Region: {{region}}
+  X-CMP-User-GID: {{userGid}}
+  X-CMP-Project-ID: {{projectId}}
+  Project-ID: {{projectId}}
+}
+
+docs {
+  KFP v2beta1 ListRunArtifacts (run.proto:97): GET /runs/{run_id}/artifacts.
+}

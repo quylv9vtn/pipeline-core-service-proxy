@@ -19,8 +19,8 @@ body:json {
     "name": "gpu-rtx2080-2x",
     "description": "2x RTX 2080, 16 vCPU, 64 GiB",
     "region_name": "{{region}}",
-    "cpu": 16,
-    "memory_gib": 64,
+    "cpu_milli": 16000,
+    "memory_mib": 65536,
     "gpu_model": "ai_rtx2080",
     "gpu_count": 2,
     "status": "enabled"
@@ -30,4 +30,5 @@ body:json {
 docs {
   gpu_model must be "ai_rtx2080" or "ai_h200". gpu_model and gpu_count must
   both be set or both be empty. Server assigns id (UUID).
+  Units: cpu_milli in millicores (16000 = 16 vCPU), memory_mib in MiB (65536 = 64 GiB).
 }

@@ -1,0 +1,23 @@
+meta {
+  name: Enable recurring run
+  type: http
+  seq: 27
+}
+
+post {
+  url: {{baseUrl}}/apis/v2beta1/recurringruns/{{recurringRunId}}:enable
+  body: none
+  auth: none
+}
+
+headers {
+  X-Region: {{region}}
+  X-CMP-User-GID: {{userGid}}
+  X-CMP-Project-ID: {{projectId}}
+  Project-ID: {{projectId}}
+}
+
+docs {
+  KFP v2beta1 EnableRecurringRun (recurring_run.proto:60):
+  POST /recurringruns/{recurring_run_id}:enable. Empty body.
+}

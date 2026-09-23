@@ -1,0 +1,23 @@
+meta {
+  name: List run executions
+  type: http
+  seq: 15
+}
+
+get {
+  url: {{baseUrl}}/apis/v2beta1/runs/{{runId}}/executions
+  body: none
+  auth: none
+}
+
+headers {
+  X-Region: {{region}}
+  X-CMP-User-GID: {{userGid}}
+  X-CMP-Project-ID: {{projectId}}
+  Project-ID: {{projectId}}
+}
+
+docs {
+  KFP v2beta1 ListRunExecutions (run.proto:81): GET /runs/{run_id}/executions.
+  MLMD executions backing the run. The gateway injects ?namespace=.
+}

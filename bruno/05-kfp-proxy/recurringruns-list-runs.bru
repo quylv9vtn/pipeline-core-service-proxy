@@ -1,0 +1,26 @@
+meta {
+  name: List runs by recurring run
+  type: http
+  seq: 14
+}
+
+get {
+  url: {{baseUrl}}/apis/v2beta1/recurringruns/{{recurringRunId}}/runs?page_size=20
+  body: none
+  auth: none
+}
+
+headers {
+  X-Region: {{region}}
+  X-CMP-User-GID: {{userGid}}
+  X-CMP-Project-ID: {{projectId}}
+  Project-ID: {{projectId}}
+}
+
+docs {
+  KFP v2beta1 ListRunsByRecurringRun (backend/api/v2beta1/run.proto:134):
+  GET /apis/v2beta1/recurringruns/{recurring_run_id}/runs.
+  Query params: page_size, page_token (from previous response nextPageToken),
+  sort_by ("created_at desc" etc.).
+  The gateway injects ?namespace=; runs are scoped to the recurring run id.
+}

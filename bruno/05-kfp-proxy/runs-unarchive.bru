@@ -1,0 +1,23 @@
+meta {
+  name: Unarchive run
+  type: http
+  seq: 22
+}
+
+post {
+  url: {{baseUrl}}/apis/v2beta1/runs/{{runId}}:unarchive
+  body: none
+  auth: none
+}
+
+headers {
+  X-Region: {{region}}
+  X-CMP-User-GID: {{userGid}}
+  X-CMP-Project-ID: {{projectId}}
+  Project-ID: {{projectId}}
+}
+
+docs {
+  KFP v2beta1 UnarchiveRun (run.proto:148): POST /runs/{run_id}:unarchive.
+  Empty body — run_id comes from the path.
+}

@@ -17,13 +17,14 @@ headers {
 body:json {
   {
     "name": "cpu-small",
-    "description": "2 vCPU, 8 GiB, no GPU",
+    "description": "100m CPU, 100MiB Mem, no GPU",
     "region_name": "{{region}}",
-    "cpu": 1,
-    "memory_gib": 1
+    "cpu_milli": 100,
+    "memory_mib": 100
   }
 }
 
 docs {
   CPU-only flavor: omit gpu_model and gpu_count entirely (both empty).
+  Units: cpu_milli in millicores (2000 = 2 vCPU), memory_mib in MiB (8192 = 8 GiB).
 }

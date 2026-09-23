@@ -19,21 +19,26 @@ headers {
 
 body:json {
   {
-    "name": "demo-run",
+    "display_name": "demo-run-1609-01",
     "experiment_id": "{{experimentId}}",
-    "pipeline_spec": {
-      "pipeline_id": "{{pipelineId}}"
+    "pipeline_version_reference": {
+      "pipeline_id": "{{pipelineId}}",
+      "pipeline_version_id": "{{pipelineVersionId}}"
     },
     "runtime_config": {
-      "parameter_values": {
+      "parameters": {
         "message": "hello run"
       }
-    }
+    },
+    "service_account": "pipeline-runner"
   }
 }
 
 docs {
-  KFP 2.x v2beta1 shape (verify field names against /swagger if needed).
+  KFP v2beta1 Run shape (backend/api/v2beta1/run.proto):
+  display_name, pipeline_version_reference {pipeline_id, pipeline_version_id},
+  runtime_config.parameters (map<string, Value>), service_account.
+  The gateway does NOT transform this body — it is a pass-through proxy.
   No namespace injection: KFP derives it from experiment_id — the experiment
   must belong to the calling project (namespace check applies to the GET).
 }

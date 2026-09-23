@@ -6,6 +6,8 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+
+	"github.com/viettel-ai-platform/pipeline-core-service/internal/region"
 )
 
 // SpecFieldName is the multipart file field carrying the pipeline spec.
@@ -75,6 +77,34 @@ func ParseUpload(r *http.Request) (*Upload, error) {
 
 // StepsRaw returns the raw steps field bytes (nil when absent).
 func (u *Upload) StepsRaw() []byte { return u.stepsRaw }
+
+// queryFieldMap moves multipart form fields onto the KFP upload handlers'
+// query parameters. KFP reads name/display_name/description/pipelineid only
+// from the query string (pipeline_upload_server.go), so form values would
+// otherwise be silently ignored and the name would fall back to the
+// uploaded filename.
+var queryFieldMap = map[string]string{
+	"name":         "name",
+	"display_name": "display_name",
+	"description":  "description",
+	"pipeline_id":  "pipelineid",
+}
+
+// MoveFieldsToQuery promotes the mapped form fields into the upstream query
+// string and drops them from the forwarded body. An explicit query param
+// already present on the request wins over the form field.
+func (u *Upload) MoveFieldsToQuery(r *http.Request) {
+	for field, param := range queryFieldMap {
+		values, ok := u.Fields[field]
+		if !ok || len(values) == 0 || values[0] == "" {
+			continue
+		}
+		if r.URL.Query().Get(param) == "" {
+			r.URL.RawQuery = region.SetQueryParam(r.URL.RawQuery, param, values[0])
+		}
+		delete(u.Fields, field)
+	}
+}
 
 // BuildUpstream re-serializes the multipart body: every original field
 // except steps, with the spec file replaced by rewritten YAML. Returns the
