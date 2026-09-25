@@ -6,7 +6,7 @@ meta {
 
 post {
   url: {{baseUrl}}/apis/v2beta1/pipelines/upload_version
-  body: multipart-form
+  body: multipartForm
   auth: none
 }
 
@@ -19,18 +19,15 @@ headers {
 
 body:multipart-form {
   uploadfile: @file(hello-world.yaml)
-  display_name: hello-world-v2
+  display_name: hello-world-v3
   pipeline_id: {{pipelineId}}
   steps: {"hello-world": {"flavor_id": "{{flavorId}}", "image_id": "{{imageId}}"}}
 }
 
 docs {
   No namespace injection (the version inherits the parent pipeline's).
-  - display_name: must be UNIQUE among the versions of THIS pipeline — a
-    duplicate returns 409 {"error": "display_name_already_exists"}. Send
-    display_name only: the gateway generates the technical version name as
-    slug(display_name)+random. A "name" field is rejected with 400
-    name_not_supported.
-  - pipeline_id: FORM FIELD — the gateway promotes it to KFP's ?pipelineid=
-    query param. It must belong to the calling project.
+  pipeline_id and name are FORM FIELDS — the gateway promotes them to KFP's
+  ?pipelineid= and ?name= query params (KFP reads them only from the query
+  string; without the promotion the version is named after the uploaded
+  file). pipeline_id must belong to the calling project.
 }

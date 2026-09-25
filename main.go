@@ -257,9 +257,13 @@ func buildRouter(
 	router.Handle("/apis/v2beta1/images",
 		cChain(catalog.FEListImages(catStore))).Methods(http.MethodGet)
 
-	// K-CHAIN base: region → enforcer → namespace → dispatcher
+	// K-CHAIN base: page_size guard → region → enforcer → namespace →
+	// dispatcher. The guard rejects page_size<=0 before KFP can interpret
+	// it as "return everything".
 	kBase := middleware.Logging(middleware.Recovery(
-		withRegion(withEnforcer(withNamespace(dispatcher))),
+		middleware.PageSize()(
+			withRegion(withEnforcer(withNamespace(dispatcher))),
+		),
 	))
 
 	// QM-CHAIN: quota pass-through — region + service-key only. CMP calls
