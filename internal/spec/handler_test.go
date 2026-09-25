@@ -21,11 +21,10 @@ func (okLookup) Resolve(_ context.Context, _, _, _ string) (Resources, error) {
 	return Resources{ImageURL: "registry/img:9", CPUMilli: 2000, MemoryMiB: 4096}, nil
 }
 
-func buildUpload(t *testing.T, specYAML, steps string) *http.Request {
+func buildUpload(t *testing.T, path, specYAML, steps string) *http.Request {
 	t.Helper()
 	var buf bytes.Buffer
 	writer := multipart.NewWriter(&buf)
-	require.NoError(t, writer.WriteField("name", "my-pipe"))
 	if steps != "" {
 		require.NoError(t, writer.WriteField("steps", steps))
 	}
@@ -35,10 +34,25 @@ func buildUpload(t *testing.T, specYAML, steps string) *http.Request {
 	require.NoError(t, err)
 	require.NoError(t, writer.Close())
 
-	req := httptest.NewRequest(http.MethodPost, "/apis/v2beta1/pipelines/upload", bytes.NewReader(buf.Bytes()))
+	req := httptest.NewRequest(http.MethodPost, path, bytes.NewReader(buf.Bytes()))
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 	return req.WithContext(region.IntoContext(req.Context(), &region.Result{Name: "vn-north-1"}))
 }
+
+// addFormField injects a form field into an already-built request (the
+// multipart form is parsed once and reused by ParseUpload).
+func addFormField(t *testing.T, req *http.Request, key, value string) *http.Request {
+	t.Helper()
+	if err := req.ParseMultipartForm(1 << 20); err != nil {
+		t.Fatal(err)
+	}
+	req.MultipartForm.Value[key] = []string{value}
+	return req
+}
+
+const fullSteps = `{
+	"preprocess":{"flavor_id":"0b9e6c7a-0000-4000-8000-000000000001","image_id":"0b9e6c7a-0000-4000-8000-000000000002"},
+	"train":{"flavor_id":"0b9e6c7a-0000-4000-8000-000000000003","image_id":"0b9e6c7a-0000-4000-8000-000000000004"}}`
 
 func TestHandleUpload(t *testing.T) {
 	var captured *http.Request
@@ -52,9 +66,7 @@ func TestHandleUpload(t *testing.T) {
 
 	t.Run("rewrites spec and strips steps", func(t *testing.T) {
 		rec := httptest.NewRecorder()
-		req := buildUpload(t, sampleIR, `{
-			"preprocess":{"flavor_id":"0b9e6c7a-0000-4000-8000-000000000001","image_id":"0b9e6c7a-0000-4000-8000-000000000002"},
-			"train":{"flavor_id":"0b9e6c7a-0000-4000-8000-000000000003","image_id":"0b9e6c7a-0000-4000-8000-000000000004"}}`)
+		req := buildUpload(t, uploadPipelinePath, sampleIR, fullSteps)
 		up.HandleUpload(rec, req)
 
 		require.NotNil(t, captured)
@@ -62,8 +74,10 @@ func TestHandleUpload(t *testing.T) {
 		assert.NotContains(t, string(capturedBody), "steps")
 		assert.Contains(t, string(capturedBody), "registry/img:9")
 		assert.Contains(t, string(capturedBody), "resourceCpuRequest: 2000m")
-		assert.Equal(t, "my-pipe", captured.URL.Query().Get("name"), "form name promoted to query param")
-		assert.NotContains(t, string(capturedBody), "my-pipe", "name moved out of the body")
+		// No display_name sent: the filename stem becomes it, and the
+		// technical name is generated from it.
+		assert.Equal(t, "pipe", captured.URL.Query().Get("display_name"))
+		assert.Regexp(t, `^pipe-[a-z0-9]{6}$`, captured.URL.Query().Get("name"))
 		assert.Equal(t, int64(len(capturedBody)), captured.ContentLength)
 		assert.Contains(t, captured.Header.Get("Content-Type"), "multipart/form-data")
 	})
@@ -71,7 +85,7 @@ func TestHandleUpload(t *testing.T) {
 	t.Run("bad spec rejected before forward", func(t *testing.T) {
 		captured = nil
 		rec := httptest.NewRecorder()
-		req := buildUpload(t, "not: [valid: ir", "")
+		req := buildUpload(t, uploadPipelinePath, "not: [valid: ir", "")
 		up.HandleUpload(rec, req)
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
 		assert.Contains(t, rec.Body.String(), "invalid_pipeline_spec")
@@ -81,7 +95,7 @@ func TestHandleUpload(t *testing.T) {
 	t.Run("uncovered step rejected", func(t *testing.T) {
 		captured = nil
 		rec := httptest.NewRecorder()
-		req := buildUpload(t, sampleIR, "")
+		req := buildUpload(t, uploadPipelinePath, sampleIR, "")
 		up.HandleUpload(rec, req)
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
 		assert.Contains(t, rec.Body.String(), "missing configuration")
@@ -92,9 +106,9 @@ func TestHandleUpload(t *testing.T) {
 		captured = nil
 		var buf bytes.Buffer
 		writer := multipart.NewWriter(&buf)
-		require.NoError(t, writer.WriteField("name", "x"))
+		require.NoError(t, writer.WriteField("display_name", "x"))
 		require.NoError(t, writer.Close())
-		req := httptest.NewRequest(http.MethodPost, "/apis/v2beta1/pipelines/upload", bytes.NewReader(buf.Bytes()))
+		req := httptest.NewRequest(http.MethodPost, uploadPipelinePath, bytes.NewReader(buf.Bytes()))
 		req.Header.Set("Content-Type", writer.FormDataContentType())
 		req = req.WithContext(region.IntoContext(req.Context(), &region.Result{Name: "vn-north-1"}))
 
@@ -105,90 +119,115 @@ func TestHandleUpload(t *testing.T) {
 		assert.Nil(t, captured)
 	})
 
-	t.Run("duplicate display name rejected with 409 before forward", func(t *testing.T) {
+	t.Run("name field is rejected", func(t *testing.T) {
+		captured = nil
+		rec := httptest.NewRecorder()
+		req := addFormField(t, buildUpload(t, uploadPipelinePath, sampleIR, fullSteps), "name", "my-pipe")
+		up.HandleUpload(rec, req)
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		assert.Contains(t, rec.Body.String(), "name_not_supported")
+		assert.Nil(t, captured)
+	})
+
+	t.Run("duplicate pipeline display name rejected with 409 before forward", func(t *testing.T) {
 		captured = nil
 		up2 := &Uploader{Lookup: okLookup{}, Forward: forward, Lister: fakeLister{"my-pipe": {}}}
 		rec := httptest.NewRecorder()
-		up2.HandleUpload(rec, buildUpload(t, sampleIR, `{
-			"preprocess":{"flavor_id":"0b9e6c7a-0000-4000-8000-000000000001","image_id":"0b9e6c7a-0000-4000-8000-000000000002"},
-			"train":{"flavor_id":"0b9e6c7a-0000-4000-8000-000000000003","image_id":"0b9e6c7a-0000-4000-8000-000000000004"}}`))
+		req := addFormField(t, buildUpload(t, uploadPipelinePath, sampleIR, fullSteps), "display_name", "my-pipe")
+		up2.HandleUpload(rec, req)
 		assert.Equal(t, http.StatusConflict, rec.Code)
 		assert.Contains(t, rec.Body.String(), "display_name_already_exists")
 		assert.Contains(t, rec.Body.String(), "my-pipe")
 		assert.Nil(t, captured)
 	})
 
-	t.Run("name generated from display name when absent", func(t *testing.T) {
+	t.Run("name generated from display name", func(t *testing.T) {
 		captured = nil
 		up2 := &Uploader{Lookup: okLookup{}, Forward: forward, Lister: fakeLister{}}
 		rec := httptest.NewRecorder()
-		req := buildUploadWithName(t, sampleIR, "display_name", "Xin chào Việt Nam", `{
-			"preprocess":{"flavor_id":"0b9e6c7a-0000-4000-8000-000000000001","image_id":"0b9e6c7a-0000-4000-8000-000000000002"},
-			"train":{"flavor_id":"0b9e6c7a-0000-4000-8000-000000000003","image_id":"0b9e6c7a-0000-4000-8000-000000000004"}}`)
+		req := addFormField(t, buildUpload(t, uploadPipelinePath, sampleIR, fullSteps), "display_name", "Xin chào Việt Nam")
 		up2.HandleUpload(rec, req)
 		require.Equal(t, http.StatusOK, rec.Code)
 		q := captured.URL.Query()
 		assert.Equal(t, "Xin chào Việt Nam", q.Get("display_name"))
 		assert.Regexp(t, `^xin-chao-viet-nam-[a-z0-9]{6}$`, q.Get("name"))
+		assert.NotContains(t, string(capturedBody), "Xin chào", "resolved fields moved out of the body")
 	})
 
-	t.Run("explicit name is kept verbatim", func(t *testing.T) {
+	t.Run("duplicate version display name rejected with 409", func(t *testing.T) {
+		captured = nil
+		up2 := &Uploader{Lookup: okLookup{}, Forward: forward, Lister: fakeLister{"v2": {}}}
+		rec := httptest.NewRecorder()
+		req := buildUpload(t, uploadVersionPath, sampleIR, fullSteps)
+		req = addFormField(t, req, "display_name", "v2")
+		req = addFormField(t, req, "pipeline_id", "parent-1")
+		up2.HandleUpload(rec, req)
+		assert.Equal(t, http.StatusConflict, rec.Code)
+		assert.Contains(t, rec.Body.String(), "display_name_already_exists")
+		assert.Nil(t, captured)
+	})
+
+	t.Run("version name generated from display name", func(t *testing.T) {
 		captured = nil
 		up2 := &Uploader{Lookup: okLookup{}, Forward: forward, Lister: fakeLister{}}
 		rec := httptest.NewRecorder()
-		up2.HandleUpload(rec, buildUpload(t, sampleIR, `{
-			"preprocess":{"flavor_id":"0b9e6c7a-0000-4000-8000-000000000001","image_id":"0b9e6c7a-0000-4000-8000-000000000002"},
-			"train":{"flavor_id":"0b9e6c7a-0000-4000-8000-000000000003","image_id":"0b9e6c7a-0000-4000-8000-000000000004"}}`))
-		require.Equal(t, http.StatusOK, rec.Code)
-		assert.Equal(t, "my-pipe", captured.URL.Query().Get("name"))
-	})
-
-	t.Run("upload_version skips name resolution", func(t *testing.T) {
-		captured = nil
-		up2 := &Uploader{Lookup: okLookup{}, Forward: forward, Lister: fakeLister{"my-pipe": {}}}
-		var buf bytes.Buffer
-		writer := multipart.NewWriter(&buf)
-		require.NoError(t, writer.WriteField("name", "my-pipe"))
-		require.NoError(t, writer.WriteField("steps", `{
-			"preprocess":{"flavor_id":"0b9e6c7a-0000-4000-8000-000000000001","image_id":"0b9e6c7a-0000-4000-8000-000000000002"},
-			"train":{"flavor_id":"0b9e6c7a-0000-4000-8000-000000000003","image_id":"0b9e6c7a-0000-4000-8000-000000000004"}}`))
-		part, err := writer.CreateFormFile("uploadfile", "pipe.yaml")
-		require.NoError(t, err)
-		_, err = part.Write([]byte(sampleIR))
-		require.NoError(t, err)
-		require.NoError(t, writer.Close())
-		req := httptest.NewRequest(http.MethodPost, "/apis/v2beta1/pipelines/upload_version", bytes.NewReader(buf.Bytes()))
-		req.Header.Set("Content-Type", writer.FormDataContentType())
-		req = req.WithContext(region.IntoContext(req.Context(), &region.Result{Name: "vn-north-1"}))
-
-		rec := httptest.NewRecorder()
+		req := buildUpload(t, uploadVersionPath, sampleIR, fullSteps)
+		req = addFormField(t, req, "display_name", "Phiên bản 2")
+		req = addFormField(t, req, "pipeline_id", "parent-1")
 		up2.HandleUpload(rec, req)
 		require.Equal(t, http.StatusOK, rec.Code)
-		// No uniqueness check, no suffix: the name passes through as-is.
-		assert.Equal(t, "my-pipe", captured.URL.Query().Get("name"))
-		_, hasDisplay := captured.URL.Query()["display_name"]
-		assert.False(t, hasDisplay)
+		q := captured.URL.Query()
+		assert.Equal(t, "Phiên bản 2", q.Get("display_name"))
+		assert.Regexp(t, `^phien-ban-2-[a-z0-9]{6}$`, q.Get("name"))
+		assert.Equal(t, "parent-1", q.Get("pipelineid"))
+	})
+
+	t.Run("version without display_name rejected", func(t *testing.T) {
+		captured = nil
+		up2 := &Uploader{Lookup: okLookup{}, Forward: forward, Lister: fakeLister{}}
+		rec := httptest.NewRecorder()
+		req := addFormField(t, buildUpload(t, uploadVersionPath, sampleIR, fullSteps), "pipeline_id", "parent-1")
+		up2.HandleUpload(rec, req)
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		assert.Contains(t, rec.Body.String(), "invalid_display_name")
+		assert.Nil(t, captured)
+	})
+
+	t.Run("version without pipeline_id rejected", func(t *testing.T) {
+		captured = nil
+		up2 := &Uploader{Lookup: okLookup{}, Forward: forward, Lister: fakeLister{}}
+		rec := httptest.NewRecorder()
+		req := addFormField(t, buildUpload(t, uploadVersionPath, sampleIR, fullSteps), "display_name", "v2")
+		up2.HandleUpload(rec, req)
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		assert.Contains(t, rec.Body.String(), "invalid_pipeline_id")
+		assert.Nil(t, captured)
+	})
+
+	t.Run("version name field rejected", func(t *testing.T) {
+		captured = nil
+		up2 := &Uploader{Lookup: okLookup{}, Forward: forward, Lister: fakeLister{}}
+		rec := httptest.NewRecorder()
+		req := buildUpload(t, uploadVersionPath, sampleIR, fullSteps)
+		req = addFormField(t, req, "display_name", "v2")
+		req = addFormField(t, req, "pipeline_id", "parent-1")
+		req = addFormField(t, req, "name", "my-version")
+		up2.HandleUpload(rec, req)
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		assert.Contains(t, rec.Body.String(), "name_not_supported")
+		assert.Nil(t, captured)
 	})
 }
 
-// fakeLister is a PipelineLister stub serving a fixed display-name set.
+// fakeLister is a NameLister stub serving a fixed display-name set.
 type fakeLister map[string]struct{}
 
 func (f fakeLister) ListDisplayNames(_ context.Context, _, _ string) (map[string]struct{}, error) {
 	return f, nil
 }
 
-// buildUploadWithName is buildUpload without its default name field, plus
-// one extra form field — for exercising the generated-name path.
-func buildUploadWithName(t *testing.T, specYAML, extraKey, extraValue, steps string) *http.Request {
-	t.Helper()
-	req := buildUpload(t, specYAML, steps)
-	if err := req.ParseMultipartForm(1 << 20); err != nil {
-		t.Fatal(err)
-	}
-	delete(req.MultipartForm.Value, "name")
-	req.MultipartForm.Value[extraKey] = []string{extraValue}
-	return req
+func (f fakeLister) ListVersionDisplayNames(_ context.Context, _, _ string) (map[string]struct{}, error) {
+	return f, nil
 }
 
 func TestMoveFieldsToQuery(t *testing.T) {
