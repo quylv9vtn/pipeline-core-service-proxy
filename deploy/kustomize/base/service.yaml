@@ -9,9 +9,13 @@ metadata:
     prometheus.io/scrape: "true"
 spec:
   ports:
-  - name: http
+  - name: http-internal
     port: 8080
     protocol: TCP
     targetPort: 8080
+  - name: http-external
+    port: 8090
+    protocol: TCP
+    targetPort: 8090
   selector:
     app: pipeline-core-service

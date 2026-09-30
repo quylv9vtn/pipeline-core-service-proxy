@@ -93,7 +93,60 @@ spec:
           capabilities:
             drop:
             - ALL
+      - name: enforcer
+        image: harbor-local.aiplatformdev.freeddns.org/ai-platform/cmp/enforcer:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: enforcer
+          containerPort: 8090
+        args:
+        - -listen=:8090
+        - -upstream=http://localhost:8080
+        - -cmp-base=http://cmp-backend.cmp.svc.cluster.local
+        - -registry=/etc/enforcer/registry.json
+        - -access-log=true
+        env:
+        - name: CMP_ENFORCER_SERVICE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: pipeline-core-gateway-secrets
+              key: enforcer-service-key
+        volumeMounts:
+        - name: enforcer-registry
+          mountPath: /etc/enforcer
+          readOnly: true
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8091
+          initialDelaySeconds: 3
+          periodSeconds: 5
+          timeoutSeconds: 2
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8091
+          initialDelaySeconds: 3
+          periodSeconds: 5
+          timeoutSeconds: 2
+        resources:
+          requests:
+            cpu: 50m
+            memory: 32Mi
+          limits:
+            cpu: 200m
+            memory: 64Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 1000
+          capabilities:
+            drop:
+            - ALL
       volumes:
       - name: regions-config
         configMap:
           name: core-gateway-regions
+      - name: enforcer-registry
+        configMap:
+          name: enforcer-registry

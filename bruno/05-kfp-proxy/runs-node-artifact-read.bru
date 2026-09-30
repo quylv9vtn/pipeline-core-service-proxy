@@ -1,0 +1,28 @@
+meta {
+  name: Read run node artifact
+  type: http
+  seq: 31
+}
+
+get {
+  url: {{baseUrl}}/apis/v2beta1/runs/{{runId}}/nodes/{{nodeId}}/artifacts/{{artifactName}}:read
+  body: none
+  auth: none
+}
+
+headers {
+  X-Region: {{region}}
+  X-CMP-User-GID: {{userGid}}
+  X-CMP-Project-ID: {{projectId}}
+  Project-ID: {{projectId}}
+}
+
+docs {
+  Download the content of a named artifact produced by a single node (step).
+  nodeId:       Kubernetes pod name OR the task's task_id (UUID) — both accepted.
+  artifactName: The artifact key — found in task_details[].output_artifacts[].name
+                or from GET /runs/{run_id}/artifacts → usages[].artifact_key.
+                Step console logs are archived as the artifact "executor-logs".
+  Response: {"data": "<base64-encoded content>"}
+  v1 alias: GET /apis/v1alpha1/runs/{run_id}/nodes/{node_id}/artifacts/{artifact_name}:read
+}

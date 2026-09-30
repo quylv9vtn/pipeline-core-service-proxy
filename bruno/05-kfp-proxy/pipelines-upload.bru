@@ -20,17 +20,17 @@ headers {
 body:multipart-form {
   uploadfile: @file(hello-world.yaml)
   steps: {"hello-world": {"flavor_id": "fbdfe0a3-7bdb-4c1d-b096-6cf5f8443dcf", "image_id": "562fdbac-df5a-4323-9ffb-f926959c8db9"}}
-  display_name: hello-world-duc-122
+  display_name: 
 }
 
 docs {
   Multipart upload with spec resolution:
   - display_name: must be UNIQUE within the project — a duplicate returns
-    409 {"error": "display_name_already_exists"}. Send display_name only:
-    the gateway generates the technical name as slug(display_name)+random.
-    A "name" field is rejected with 400 name_not_supported. Both resolved
-    values are promoted to KFP's ?name=/?display_name= query params (KFP
-    ignores form fields).
+    409 {"error": "display_name_already_exists"}. Send display_name instead
+    of name: the gateway generates the technical name as
+    slug(display_name)+random (an explicit name field/query param is still
+    honored verbatim). Both are promoted to KFP's ?name=/?display_name=
+    query params (KFP ignores form fields).
   - uploadfile: KFP IR YAML (schemaVersion 2.x). @file paths resolve relative
     to the collection root (bruno/hello-world.yaml). If Bruno can't find it,
     re-select the file in the UI once.

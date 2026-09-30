@@ -4,6 +4,7 @@ resources:
 - namespace.yaml
 - serviceaccount.yaml
 - configmap.yaml
+- enforcer-registry-configmap.yaml
 - secret.yaml
 - deployment.yaml
 - service.yaml

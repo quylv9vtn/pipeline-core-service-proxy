@@ -1,0 +1,30 @@
+meta {
+  name: Get run node log
+  type: http
+  seq: 30
+}
+
+get {
+  url: {{baseUrl}}/apis/v1alpha1/runs/{{runId}}/nodes/{{taskId}}/log
+  body: none
+  auth: none
+}
+
+params:query {
+  ~follow: true
+}
+
+headers {
+  X-Region: {{region}}
+  X-CMP-User-GID: {{userGid}}
+  X-CMP-Project-ID: {{projectId}}
+  Project-ID: {{projectId}}
+}
+
+docs {
+  Console log for a single node (step) in a run.
+  nodeId: Kubernetes pod name — found in run_details.task_details[].child_tasks[].pod_name
+         or from GET /runs/{run_id}/tasks/{task_id} → child_tasks[].pod_name.
+  follow=true: stream log lines as they arrive (omit for a one-shot read of current output).
+  Returns plain text. Falls back to archived logs when the pod is gone.
+}

@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: enforcer-registry
+  namespace: aiplatform-core-gateway
+data:
+  registry.json: |
+    {
+      "routes": [
+        {"method": "GET",    "path": "/apis/v2beta1/flavors", "scope": "project", "urns": []},
+        {"method": "GET",    "path": "/apis/v2beta1/images",  "scope": "project", "urns": []},
+
+        {"method": "POST",   "path": "/apis/v2beta1/pipelines/upload",         "scope": "project", "urns": []},
+        {"method": "POST",   "path": "/apis/v2beta1/pipelines/upload_version", "scope": "project", "urns": []},
+        {"method": "GET",    "path": "/apis/v2beta1/pipelines",                "scope": "project", "urns": []},
+        {"method": "POST",   "path": "/apis/v2beta1/pipelines",                "scope": "project", "urns": []},
+        {"method": "GET",    "path": "/apis/v2beta1/pipelines/{pipeline_id}",  "scope": "project", "urns": []},
+        {"method": "DELETE", "path": "/apis/v2beta1/pipelines/{pipeline_id}",  "scope": "project", "urns": []},
+
+        {"method": "GET",    "path": "/apis/v2beta1/runs",          "scope": "project", "urns": []},
+        {"method": "POST",   "path": "/apis/v2beta1/runs",          "scope": "project", "urns": []},
+        {"method": "GET",    "path": "/apis/v2beta1/runs/{run_id}", "scope": "project", "urns": []},
+        {"method": "DELETE", "path": "/apis/v2beta1/runs/{run_id}", "scope": "project", "urns": []},
+        {"method": "GET",    "path": "/apis/v2beta1/runs/{run_id}/artifacts",                 "scope": "project", "urns": []},
+        {"method": "GET",    "path": "/apis/v2beta1/runs/{run_id}/tasks/{task_id}",           "scope": "project", "urns": []},
+        {"method": "GET",    "path": "/apis/v2beta1/runs/{run_id}/executions",                "scope": "project", "urns": []},
+        {"method": "GET",    "path": "/apis/v2beta1/runs/{run_id}/executions/{execution_id}", "scope": "project", "urns": []},
+
+        {"method": "GET",    "path": "/apis/v2beta1/recurringruns",          "scope": "project", "urns": []},
+        {"method": "POST",   "path": "/apis/v2beta1/recurringruns",          "scope": "project", "urns": []},
+        {"method": "GET",    "path": "/apis/v2beta1/recurringruns/{job_id}", "scope": "project", "urns": []},
+        {"method": "DELETE", "path": "/apis/v2beta1/recurringruns/{job_id}", "scope": "project", "urns": []},
+
+        {"method": "GET",    "path": "/apis/v2beta1/experiments",                 "scope": "project", "urns": []},
+        {"method": "POST",   "path": "/apis/v2beta1/experiments",                 "scope": "project", "urns": []},
+        {"method": "GET",    "path": "/apis/v2beta1/experiments/{experiment_id}", "scope": "project", "urns": []},
+        {"method": "DELETE", "path": "/apis/v2beta1/experiments/{experiment_id}", "scope": "project", "urns": []}
+      ]
+    }

@@ -5,9 +5,13 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/apis/v2beta1/experiments?page_size=20
+  url: {{baseUrl}}/apis/v2beta1/experiments?page_size=2
   body: none
   auth: none
+}
+
+params:query {
+  page_size: 2
 }
 
 headers {
