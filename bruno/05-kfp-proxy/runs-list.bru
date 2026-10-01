@@ -5,9 +5,13 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/apis/v2beta1/runs?page_size=20
+  url: {{baseUrl}}/apis/v2beta1/runs?state=RUNNING
   body: none
   auth: none
+}
+
+params:query {
+  state: RUNNING
 }
 
 headers {

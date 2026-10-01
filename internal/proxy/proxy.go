@@ -3,13 +3,18 @@
 package proxy
 
 import (
+	"bytes"
 	"crypto/tls"
 	"fmt"
+	"io"
+	"mime"
 	"net"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"sort"
+	"strconv"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -145,8 +150,9 @@ func newTarget(name string, rc config.RegionConfig) (*Target, error) {
 			// X-Region is intentionally forwarded: it gives the regional
 			// side an audit trail of gateway-routed calls.
 		},
-		Transport:     transport,
-		FlushInterval: 100 * time.Millisecond,
+		Transport:      transport,
+		FlushInterval:  100 * time.Millisecond,
+		ModifyResponse: injectRegionResponse(name),
 		ErrorHandler: func(w http.ResponseWriter, r *http.Request, perr error) {
 			metrics.UpstreamErrors.WithLabelValues(name).Inc()
 			glog.Errorf("proxy to region %q %s %s failed: %v", name, r.Method, r.URL.Path, perr)
@@ -154,4 +160,39 @@ func newTarget(name string, rc config.RegionConfig) (*Target, error) {
 		},
 	}
 	return target, nil
+}
+
+// injectRegionResponse returns a ModifyResponse hook that adds a top-level
+// "region" field to JSON responses. Encoded (e.g. gzip) or non-JSON responses
+// are forwarded byte-identical; injection failures are silently skipped so
+// the upstream payload always reaches the client.
+func injectRegionResponse(regionName string) func(*http.Response) error {
+	return func(resp *http.Response) error {
+		// Only modify uncompressed JSON responses.
+		if resp.Header.Get("Content-Encoding") != "" {
+			return nil
+		}
+		ct := resp.Header.Get("Content-Type")
+		if !isJSONContentType(ct) {
+			return nil
+		}
+		body, err := io.ReadAll(resp.Body)
+		_ = resp.Body.Close()
+		if err != nil {
+			// Return the empty body rather than propagating; upstream error
+			// is better surfaced by the status code.
+			resp.Body = io.NopCloser(bytes.NewReader(body))
+			return nil //nolint:nilerr
+		}
+		modified := region.SetTopLevelJSONKey(body, "region", regionName)
+		resp.Body = io.NopCloser(bytes.NewReader(modified))
+		resp.ContentLength = int64(len(modified))
+		resp.Header.Set("Content-Length", strconv.Itoa(len(modified)))
+		return nil
+	}
+}
+
+func isJSONContentType(ct string) bool {
+	mt, _, err := mime.ParseMediaType(ct)
+	return err == nil && (mt == "application/json" || strings.HasSuffix(mt, "+json"))
 }

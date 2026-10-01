@@ -257,12 +257,15 @@ func buildRouter(
 	router.Handle("/apis/v2beta1/images",
 		cChain(catalog.FEListImages(catStore))).Methods(http.MethodGet)
 
-	// K-CHAIN base: page_size guard → region → enforcer → namespace →
-	// dispatcher. The guard rejects page_size<=0 before KFP can interpret
-	// it as "return everything".
+	// K-CHAIN base: page_size guard → fanout-intercept → region → enforcer
+	// → namespace → dispatcher. The fanout middleware short-circuits
+	// X-Region: all / ?region=all before the region validator sees it; all
+	// other requests fall through to the normal single-region path.
 	kBase := middleware.Logging(middleware.Recovery(
 		middleware.PageSize()(
-			withRegion(withEnforcer(withNamespace(dispatcher))),
+			proxy.FanoutMiddleware(dispatcher, nsResolver, cfg.EnforcerRequired)(
+				withRegion(withEnforcer(withNamespace(dispatcher))),
+			),
 		),
 	))
 
