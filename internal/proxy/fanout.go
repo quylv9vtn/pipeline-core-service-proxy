@@ -18,7 +18,7 @@ import (
 
 // AllRegionsValue is the sentinel that triggers a multi-region fan-out.
 // Clients supply it as X-Region: all or ?region=all on list (GET) requests.
-const AllRegionsValue = "all"
+const AllRegionsValue = region.AllRegions
 
 // fanoutResult captures the outcome of one regional call.
 type fanoutResult struct {
@@ -127,11 +127,11 @@ func FanoutMiddleware(
 // isFanoutRequest reports whether the request carries the "all" sentinel in
 // the X-Region header or the ?region= query parameter.
 func isFanoutRequest(r *http.Request) bool {
-	if strings.EqualFold(strings.TrimSpace(r.Header.Get(region.HeaderName)), AllRegionsValue) {
+	if region.IsAllRegions(r.Header.Get(region.HeaderName)) {
 		return true
 	}
 	for _, v := range r.URL.Query()[region.QueryParam] {
-		if strings.EqualFold(strings.TrimSpace(v), AllRegionsValue) {
+		if region.IsAllRegions(v) {
 			return true
 		}
 	}
@@ -205,9 +205,9 @@ func doFanoutCall(
 // a "failed_regions" field.
 func mergeListResponses(results []fanoutResult) ([]byte, error) {
 	var (
-		listKey      string
-		allItems     []json.RawMessage
-		totalSize    int64
+		listKey       string
+		allItems      []json.RawMessage
+		totalSize     int64
 		failedRegions []string
 	)
 
@@ -264,8 +264,8 @@ func mergeListResponses(results []fanoutResult) ([]byte, error) {
 
 	// Build the merged response object.
 	type mergedResponse struct {
-		TotalSize     int64              `json:"total_size"`
-		FailedRegions []string           `json:"failed_regions,omitempty"`
+		TotalSize     int64    `json:"total_size"`
+		FailedRegions []string `json:"failed_regions,omitempty"`
 	}
 	// We build the object manually to keep the list field name dynamic.
 	itemsJSON, err := json.Marshal(allItems)

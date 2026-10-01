@@ -59,7 +59,7 @@ func newTestDispatcher(t *testing.T, regions map[string]config.RegionConfig) (*D
 // serve starts a gateway httptest server for the given dispatcher+store.
 func serve(t *testing.T, d *Dispatcher, store *config.Store) *httptest.Server {
 	t.Helper()
-	handler := middleware.Region(store, 1<<20)(d)
+	handler := middleware.Region(store, 1<<20, false)(d)
 	srv := httptest.NewServer(handler)
 	t.Cleanup(srv.Close)
 	return srv

@@ -17,8 +17,19 @@ type handler struct {
 	store Store
 }
 
+// catalogListRegion maps the resolved region to the store's region filter:
+// the all-regions sentinel becomes the empty filter (every region, each row
+// carrying its own region_name); anything else filters to that region.
+func catalogListRegion(res *region.Result) string {
+	if res != nil && res.Name == region.AllRegions {
+		return ""
+	}
+	return res.Name
+}
+
 // FEListFlavors serves GET /apis/v2beta1/flavors — enabled-only rows of the
 // region resolved by the Region middleware (region-scoped, no Project-ID).
+// X-Region: all lists enabled rows of every region.
 func FEListFlavors(store Store) http.HandlerFunc {
 	h := handler{store: store}
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -28,7 +39,7 @@ func FEListFlavors(store Store) http.HandlerFunc {
 				Message: "No region resolved for request."}).Write(w)
 			return
 		}
-		flavors, err := h.store.ListFlavors(r.Context(), res.Name, true)
+		flavors, err := h.store.ListFlavors(r.Context(), catalogListRegion(res), true)
 		if err != nil {
 			writeStoreError(w, err)
 			return
@@ -41,6 +52,7 @@ func FEListFlavors(store Store) http.HandlerFunc {
 }
 
 // FEListImages serves GET /apis/v2beta1/images — enabled-only rows.
+// X-Region: all lists enabled rows of every region.
 func FEListImages(store Store) http.HandlerFunc {
 	h := handler{store: store}
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -50,7 +62,7 @@ func FEListImages(store Store) http.HandlerFunc {
 				Message: "No region resolved for request."}).Write(w)
 			return
 		}
-		images, err := h.store.ListImages(r.Context(), res.Name, true)
+		images, err := h.store.ListImages(r.Context(), catalogListRegion(res), true)
 		if err != nil {
 			writeStoreError(w, err)
 			return

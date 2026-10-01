@@ -19,7 +19,7 @@ headers {
 
 body:multipart-form {
   uploadfile: @file(hello-world.yaml)
-  display_name: hello-world-v3
+  display_name: hello-world-v3xx
   pipeline_id: {{pipelineId}}
   steps: {"hello-world": {"flavor_id": "{{flavorId}}", "image_id": "{{imageId}}"}}
 }

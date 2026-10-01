@@ -213,7 +213,10 @@ func buildRouter(
 	router.PathPrefix("/swagger").Handler(middleware.Logging(swagger.Handler(specProvider)))
 
 	// ── Middleware factories ──────────────────────────────────────────────
-	withRegion := middleware.Region(regionStore, cfg.MaxJSONBodyBytes)
+	withRegion := middleware.Region(regionStore, cfg.MaxJSONBodyBytes, false)
+	// Catalog FE chains accept the all-regions sentinel (X-Region: all /
+	// ?region=all) to list every region's rows in one request.
+	withRegionAllowAll := middleware.Region(regionStore, cfg.MaxJSONBodyBytes, true)
 	withEnforcer := middleware.Enforcer(cfg.EnforcerRequired)
 	withNamespace := middleware.Namespace(nsResolver, cfg.MaxJSONBodyBytes)
 	withServiceKey := middleware.ServiceKey(cfg.ServiceKey)
@@ -248,9 +251,9 @@ func buildRouter(
 	router.Handle("/apis/v2beta1/admin/images/{id}",
 		sChain(catalog.AdminDeleteImage(catStore))).Methods(http.MethodDelete)
 
-	// C-CHAIN: catalog FE — region-aware, enforcer-guarded (no namespace)
+	// C-CHAIN: catalog FE — region-aware (accepts region=all), enforcer-guarded
 	cChain := func(h http.Handler) http.Handler {
-		return middleware.Logging(middleware.Recovery(withRegion(withEnforcer(h))))
+		return middleware.Logging(middleware.Recovery(withRegionAllowAll(withEnforcer(h))))
 	}
 	router.Handle("/apis/v2beta1/flavors",
 		cChain(catalog.FEListFlavors(catStore))).Methods(http.MethodGet)

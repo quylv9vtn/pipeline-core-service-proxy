@@ -35,7 +35,61 @@ func strconvQuote(s string) string {
 }
 
 func chain(store *config.Store, max int64) http.Handler {
-	return Recovery(Region(store, max)(http.HandlerFunc(passthrough)))
+	return Recovery(Region(store, max, false)(http.HandlerFunc(passthrough)))
+}
+
+func chainAllowAll(store *config.Store, max int64) http.Handler {
+	return Recovery(Region(store, max, true)(http.HandlerFunc(passthrough)))
+}
+
+func TestRegionAllowAll(t *testing.T) {
+	store := config.NewStore(map[string]config.RegionConfig{
+		"vn-north-1": {Endpoint: "http://10.24.10.26:31132"},
+	})
+
+	t.Run("header sentinel bypasses validation", func(t *testing.T) {
+		r := httptest.NewRequest(http.MethodGet, "/apis/v2beta1/flavors", nil)
+		r.Header.Set(region.HeaderName, "all")
+		w := httptest.NewRecorder()
+		chainAllowAll(store, 1<<20).ServeHTTP(w, r)
+		require.Equal(t, http.StatusOK, w.Code)
+		assert.Contains(t, w.Body.String(), `"region":"all"`)
+	})
+
+	t.Run("query sentinel is stripped", func(t *testing.T) {
+		r := httptest.NewRequest(http.MethodGet, "/apis/v2beta1/flavors?region=all&page_size=5", nil)
+		w := httptest.NewRecorder()
+		chainAllowAll(store, 1<<20).ServeHTTP(w, r)
+		require.Equal(t, http.StatusOK, w.Code)
+		assert.Contains(t, w.Body.String(), `"region":"all"`)
+		assert.Contains(t, w.Body.String(), `"query":"page_size=5"`)
+	})
+
+	t.Run("strict validation still applies to real regions", func(t *testing.T) {
+		r := httptest.NewRequest(http.MethodGet, "/apis/v2beta1/flavors?region=vn-north-1", nil)
+		w := httptest.NewRecorder()
+		chainAllowAll(store, 1<<20).ServeHTTP(w, r)
+		require.Equal(t, http.StatusOK, w.Code)
+		assert.Contains(t, w.Body.String(), `"region":"vn-north-1"`)
+	})
+
+	t.Run("unknown region still rejected with allowAll", func(t *testing.T) {
+		r := httptest.NewRequest(http.MethodGet, "/apis/v2beta1/flavors", nil)
+		r.Header.Set(region.HeaderName, "vn-south-9")
+		w := httptest.NewRecorder()
+		chainAllowAll(store, 1<<20).ServeHTTP(w, r)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		assert.Contains(t, w.Body.String(), "unknown_region")
+	})
+
+	t.Run("allowAll=false still rejects the sentinel", func(t *testing.T) {
+		r := httptest.NewRequest(http.MethodGet, "/apis/v2beta1/runs", nil)
+		r.Header.Set(region.HeaderName, "all")
+		w := httptest.NewRecorder()
+		chain(store, 1<<20).ServeHTTP(w, r)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		assert.Contains(t, w.Body.String(), "unknown_region")
+	})
 }
 
 func TestRegionMiddlewareFullChain(t *testing.T) {
@@ -113,7 +167,7 @@ func TestRegionRecordedForLogging(t *testing.T) {
 	// the Logging middleware does.
 	serve := func(req *http.Request) string {
 		outer := req.WithContext(withRegionHolder(req.Context()))
-		Region(store, 1<<20)(http.HandlerFunc(passthrough)).ServeHTTP(httptest.NewRecorder(), outer)
+		Region(store, 1<<20, false)(http.HandlerFunc(passthrough)).ServeHTTP(httptest.NewRecorder(), outer)
 		return loggedRegion(outer)
 	}
 

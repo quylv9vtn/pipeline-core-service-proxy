@@ -6,8 +6,8 @@ import (
 	"errors"
 	"io"
 	"net/http"
-	"strings"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -26,7 +26,7 @@ type fakeStore struct {
 func (f *fakeStore) ListFlavors(_ context.Context, regionName string, enabledOnly bool) ([]Flavor, error) {
 	out := []Flavor{}
 	for _, fl := range f.flavors {
-		if fl.RegionName == regionName && (!enabledOnly || fl.Status == StatusEnabled) {
+		if (regionName == "" || fl.RegionName == regionName) && (!enabledOnly || fl.Status == StatusEnabled) {
 			out = append(out, fl)
 		}
 	}
@@ -74,7 +74,7 @@ func (f *fakeStore) DeleteFlavor(_ context.Context, id string) error {
 func (f *fakeStore) ListImages(_ context.Context, regionName string, enabledOnly bool) ([]Image, error) {
 	out := []Image{}
 	for _, im := range f.images {
-		if im.RegionName == regionName && (!enabledOnly || im.Status == StatusEnabled) {
+		if (regionName == "" || im.RegionName == regionName) && (!enabledOnly || im.Status == StatusEnabled) {
 			out = append(out, im)
 		}
 	}
@@ -196,6 +196,24 @@ func TestFEListFlavors(t *testing.T) {
 		assert.Equal(t, http.StatusOK, rec.Code)
 		assert.Equal(t, "[]", jsonCompact(t, rec.Body.Bytes()))
 	})
+
+	t.Run("all-regions returns enabled rows of every region", func(t *testing.T) {
+		req := testRegionCtx(httptest.NewRequest(http.MethodGet, "/", nil), region.AllRegions)
+		rec := httptest.NewRecorder()
+		FEListFlavors(store)(rec, req)
+		require.Equal(t, http.StatusOK, rec.Code)
+
+		var got []Flavor
+		require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &got))
+		require.Len(t, got, 2, "enabled rows of both regions, disabled excluded")
+		names := []string{got[0].Name, got[1].Name}
+		assert.Contains(t, names, "enabled-a")
+		assert.Contains(t, names, "other-region")
+		// Each row still carries its own region.
+		for _, fl := range got {
+			assert.NotEmpty(t, fl.RegionName)
+		}
+	})
 }
 
 func jsonCompact(t *testing.T, b []byte) string {
@@ -273,7 +291,8 @@ func TestWriteStoreError(t *testing.T) {
 
 type stringRd struct{ s string }
 
-/* unused */ func (r *stringRd) Read(p []byte) (int, error) {
+/* unused */
+func (r *stringRd) Read(p []byte) (int, error) {
 	if len(r.s) == 0 {
 		return 0, io.EOF
 	}

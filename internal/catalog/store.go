@@ -62,6 +62,8 @@ type Image struct {
 }
 
 // Store is the persistence surface of the catalog (interface for tests).
+// List methods take a region name; the empty string lists every region
+// (all-regions FE listing — rows carry their own RegionName).
 type Store interface {
 	ListFlavors(ctx context.Context, region string, enabledOnly bool) ([]Flavor, error)
 	GetFlavor(ctx context.Context, id string) (Flavor, error)
@@ -83,12 +85,20 @@ type PGStore struct {
 
 func NewPGStore(pool *pgxpool.Pool) *PGStore { return &PGStore{pool: pool} }
 
-func (s *PGStore) ListFlavors(ctx context.Context, region string, enabledOnly bool) ([]Flavor, error) {
+func (s *PGStore) ListFlavors(ctx context.Context, regionName string, enabledOnly bool) ([]Flavor, error) {
 	q := `SELECT id, name, description, region_name, cpu_milli, memory_mib, gpu_model, gpu_count, status, created_at, updated_at
-	      FROM flavors WHERE region_name = $1`
-	args := []any{region}
+	      FROM flavors`
+	args := []any{}
+	if regionName != "" {
+		q += " WHERE region_name = $1"
+		args = append(args, regionName)
+	}
 	if enabledOnly {
-		q += " AND status = 'enabled'"
+		if regionName != "" {
+			q += " AND status = 'enabled'"
+		} else {
+			q += " WHERE status = 'enabled'"
+		}
 	}
 	q += " ORDER BY name"
 	rows, err := s.pool.Query(ctx, q, args...)
@@ -145,12 +155,20 @@ func (s *PGStore) DeleteFlavor(ctx context.Context, id string) error {
 	return nil
 }
 
-func (s *PGStore) ListImages(ctx context.Context, region string, enabledOnly bool) ([]Image, error) {
+func (s *PGStore) ListImages(ctx context.Context, regionName string, enabledOnly bool) ([]Image, error) {
 	q := `SELECT id, name, description, region_name, version, image_url, status, created_at, updated_at
-	      FROM images WHERE region_name = $1`
-	args := []any{region}
+	      FROM images`
+	args := []any{}
+	if regionName != "" {
+		q += " WHERE region_name = $1"
+		args = append(args, regionName)
+	}
 	if enabledOnly {
-		q += " AND status = 'enabled'"
+		if regionName != "" {
+			q += " AND status = 'enabled'"
+		} else {
+			q += " WHERE status = 'enabled'"
+		}
 	}
 	q += " ORDER BY name, version"
 	rows, err := s.pool.Query(ctx, q, args...)

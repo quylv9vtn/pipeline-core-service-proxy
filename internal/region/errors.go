@@ -3,6 +3,7 @@ package region
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 )
 
 // Source records where the region came from.
@@ -22,6 +23,24 @@ const QueryParam = "region"
 
 // JSONField is the reserved top-level region field in JSON bodies.
 const JSONField = "region"
+
+// AllRegions is the sentinel region value that requests "every configured
+// region" — multi-region fan-out for KFP proxy lists (proxy package) and a
+// cross-region catalog listing for the gateway-served flavors/images lists.
+const AllRegions = "all"
+
+// IsAllRegions reports whether v is the all-regions sentinel
+// (case-insensitive, surrounding whitespace ignored).
+func IsAllRegions(v string) bool {
+	return equalFoldTrimSpace(v, AllRegions)
+}
+
+// equalFoldTrimSpace is split out to keep IsAllRegions testable without
+// importing strings in callers.
+func equalFoldTrimSpace(v, sentinel string) bool {
+	v = strings.TrimSpace(v)
+	return strings.EqualFold(v, sentinel)
+}
 
 const regionHint = "Provide it via the X-Region header, a ?region= query parameter, or a top-level \"region\" field in a JSON request body."
 
