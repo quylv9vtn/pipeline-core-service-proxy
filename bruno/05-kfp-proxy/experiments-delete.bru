@@ -1,0 +1,27 @@
+meta {
+  name: Delete experiment
+  type: http
+  seq: 40
+}
+
+delete {
+  url: {{baseUrl}}/apis/v2beta1/experiments/{{experimentId}}
+  body: none
+  auth: none
+}
+
+headers {
+  X-Region: {{region}}
+  X-CMP-User-GID: {{userGid}}
+  X-CMP-Project-ID: {{projectId}}
+  Project-ID: {{projectId}}
+}
+
+docs {
+  DELETE /apis/v2beta1/experiments/{experiment_id}
+  Deletes an experiment. Cascade is NOT supported.
+  Returns 409 Conflict if the experiment still has:
+    - recurring runs (jobs) referencing it
+    - runs referencing it
+  Delete or reassign all associated runs and recurring runs first.
+}

@@ -1,0 +1,31 @@
+meta {
+  name: Batch delete runs
+  type: http
+  seq: 33
+}
+
+post {
+  url: {{baseUrl}}/apis/v2beta1/runs:batchDelete
+  body: json
+  auth: none
+}
+
+headers {
+  X-Region: {{region}}
+  X-CMP-User-GID: {{userGid}}
+  X-CMP-Project-ID: {{projectId}}
+  Project-ID: {{projectId}}
+}
+
+body:json {
+  {
+    "run_ids": ["{{runId}}"]
+  }
+}
+
+docs {
+  POST /apis/v2beta1/runs:batchDelete
+  Deletes multiple runs concurrently.
+  Response: { "deleted_run_ids": [...], "errors": [{"run_id": "...", "error": "..."}] }
+  HTTP 200 always; partial failures are reported in the errors array.
+}

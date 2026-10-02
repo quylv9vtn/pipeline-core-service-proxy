@@ -19,9 +19,9 @@ headers {
 
 body:json {
   {
-    "display_name": "demo-recurring-d1",
+    "display_name": "demo-recurring-d112",
     "experiment_id": "{{experimentId}}",
-    "mode": "ENABLE",
+    "mode": "DISABLE",
     "no_catchup": true,
     "max_concurrency": 1,
     "trigger": {
@@ -37,8 +37,7 @@ body:json {
       "parameters": {
         "message": "hello recurring"
       }
-    },
-    "service_account": "pipeline-runner"
+    }
   }
 }
 

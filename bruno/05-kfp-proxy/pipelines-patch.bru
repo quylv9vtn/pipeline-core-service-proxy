@@ -1,0 +1,31 @@
+meta {
+  name: Patch pipeline
+  type: http
+  seq: 35
+}
+
+patch {
+  url: {{baseUrl}}/apis/v2beta1/pipelines/{{pipelineId}}
+  body: json
+  auth: none
+}
+
+headers {
+  X-Region: {{region}}
+  X-CMP-User-GID: {{userGid}}
+  X-CMP-Project-ID: {{projectId}}
+  Project-ID: {{projectId}}
+}
+
+body:json {
+  {
+    "display_name": "updated-pipeline-name",
+    "description": "Updated pipeline description"
+  }
+}
+
+docs {
+  PATCH /apis/v2beta1/pipelines/{pipeline_id}
+  Updates display_name and/or description of a pipeline.
+  Both fields are optional. Returns the full updated pipeline resource.
+}

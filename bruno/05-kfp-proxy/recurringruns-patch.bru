@@ -1,0 +1,31 @@
+meta {
+  name: Patch recurring run
+  type: http
+  seq: 37
+}
+
+patch {
+  url: {{baseUrl}}/apis/v2beta1/recurringruns/{{recurringRunId}}
+  body: json
+  auth: none
+}
+
+headers {
+  X-Region: {{region}}
+  X-CMP-User-GID: {{userGid}}
+  X-CMP-Project-ID: {{projectId}}
+  Project-ID: {{projectId}}
+}
+
+body:json {
+  {
+    "display_name": "updated-recurring-run-name",
+    "description": "Updated recurring run description"
+  }
+}
+
+docs {
+  PATCH /apis/v2beta1/recurringruns/{recurring_run_id}
+  Updates display_name and/or description of a recurring run (job).
+  Both fields are optional. Returns the full updated recurring run resource.
+}

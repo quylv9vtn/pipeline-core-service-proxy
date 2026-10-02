@@ -18,8 +18,8 @@ headers {
 }
 
 docs {
-  KFP v2beta1 DeleteRecurringRun (recurring_run.proto:74):
-  DELETE /recurringruns/{recurring_run_id}.
-  Optional query param: propagation_policy (DELETE_PROPAGATION_POLICY_UNSPECIFIED
-  | FOREGROUND) — what happens to runs already created by this recurring run.
+  DELETE /apis/v2beta1/recurringruns/{recurring_run_id}
+  Without ?cascade=true: returns 409 Conflict if the recurring run has associated runs.
+  With ?cascade=true: deletes all associated runs first, then deletes the recurring run.
+  See recurringruns-patch.bru to update display_name / description instead.
 }

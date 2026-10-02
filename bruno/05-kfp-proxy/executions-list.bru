@@ -1,0 +1,34 @@
+meta {
+  name: List executions
+  type: http
+  seq: 34
+}
+
+get {
+  url: {{baseUrl}}/apis/v2beta1/executions
+  body: none
+  auth: none
+}
+
+params:query {
+  page_size: 20
+}
+
+headers {
+  X-Region: {{region}}
+  X-CMP-User-GID: {{userGid}}
+  X-CMP-Project-ID: {{projectId}}
+  Project-ID: {{projectId}}
+}
+
+docs {
+  GET /apis/v2beta1/executions
+  Aggregate view of MLMD executions across all runs.
+  Query params:
+    namespace=<ns>         filter by Kubernetes namespace (injected by gateway)
+    run_id=<id>            filter by run
+    state=<S1,S2,...>      filter by MLMD state (COMPLETE, FAILED, NEW, RUNNING, ...)
+    page_size=<N>          default 20, max 1000
+    page_token=<tok>       continuation token from previous response
+  Response: { "executions": [...], "total_size": N, "next_page_token": "..." }
+}

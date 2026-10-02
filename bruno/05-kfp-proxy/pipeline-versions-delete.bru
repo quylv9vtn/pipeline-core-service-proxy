@@ -1,0 +1,30 @@
+meta {
+  name: Delete pipeline version
+  type: http
+  seq: 39
+}
+
+delete {
+  url: {{baseUrl}}/apis/v2beta1/pipelines/{{pipelineId}}/versions/{{pipelineVersionId}}?cascade=true
+  body: none
+  auth: none
+}
+
+params:query {
+  cascade: true
+}
+
+headers {
+  X-Region: {{region}}
+  X-CMP-User-GID: {{userGid}}
+  X-CMP-Project-ID: {{projectId}}
+  Project-ID: {{projectId}}
+}
+
+docs {
+  DELETE /apis/v2beta1/pipelines/{pipeline_id}/versions/{pipeline_version_id}
+  Deletes a pipeline version.
+  Without ?cascade=true: returns 409 Conflict if the version has associated runs.
+  With ?cascade=true: deletes all associated runs first, then deletes the version.
+  Returns 500 if any run deletion fails.
+}
