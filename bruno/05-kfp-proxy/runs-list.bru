@@ -11,7 +11,13 @@ get {
 }
 
 params:query {
-  state: RUNNING
+  ~state: RUNNING
+  ~display_name:
+  ~pipeline_version_id:
+  ~experiment_id:
+  ~sort_by:
+  ~page_size:
+  ~page_token:
 }
 
 headers {
@@ -22,5 +28,18 @@ headers {
 }
 
 docs {
-  List: the gateway injects ?namespace=.
+  GET /apis/v2beta1/runs
+  The gateway injects ?namespace= from the project mapping.
+
+  Shorthand filter params (comma-separated values become IN predicates):
+    state=SUCCEEDED,FAILED     filter by runtime state (case-insensitive)
+    display_name=my-run        filter by display name (exact, case-sensitive)
+    pipeline_version_id=<id>   filter by pipeline version UUID
+    experiment_id=<id>         filter by experiment UUID
+
+  Standard params:
+    sort_by=created_at desc    sorting field and direction
+    page_size=<N>              results per page
+    page_token=<tok>           continuation token from previous response
+    filter=<Filter JSON>       full KFP filter expression (combined with shorthand filters)
 }
