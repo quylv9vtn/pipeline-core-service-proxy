@@ -5,7 +5,7 @@ meta {
 }
 
 post {
-  url: {{baseUrl}}/apis/v2beta1/runs:batchDelete
+  url: {{baseUrl}}/apis/v2beta1/runs/delete
   body: json
   auth: none
 }
@@ -24,7 +24,7 @@ body:json {
 }
 
 docs {
-  POST /apis/v2beta1/runs:batchDelete
+  POST /apis/v2beta1/runs/delete
   Deletes multiple runs concurrently.
   Response: { "deleted_run_ids": [...], "errors": [{"run_id": "...", "error": "..."}] }
   HTTP 200 always; partial failures are reported in the errors array.
