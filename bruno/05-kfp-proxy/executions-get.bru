@@ -1,0 +1,41 @@
+meta {
+  name: Get execution
+  type: http
+  seq: 37
+}
+
+get {
+  url: {{baseUrl}}/apis/v2beta1/executions/{{executionId}}
+  body: none
+  auth: none
+}
+
+headers {
+  X-Region: {{region}}
+  X-CMP-User-GID: {{userGid}}
+  X-CMP-Project-ID: {{projectId}}
+  Project-ID: {{projectId}}
+}
+
+docs {
+  GET /apis/v2beta1/executions/{execution_id}
+  Returns a single MLMD execution by its numeric ID.
+  Also enriches with run_id, task_id, pod_name from the tasks table when available.
+
+  Response:
+    {
+      "run_id": "abc-123",
+      "execution_id": 7,
+      "type_id": 3,
+      "type_name": "system.ContainerExecution",
+      "name": "train-step",
+      "external_id": "workflow-node-xyz",
+      "state": "COMPLETE",
+      "task_id": "task-uuid",
+      "pod_name": "workflow-train-step-abc",
+      "created_at_ms": 1700000000000,
+      "last_updated_at_ms": 1700000001000,
+      "properties": {...},
+      "custom_properties": {...}
+    }
+}

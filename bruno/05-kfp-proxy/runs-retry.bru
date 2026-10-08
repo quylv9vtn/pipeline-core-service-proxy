@@ -5,7 +5,7 @@ meta {
 }
 
 post {
-  url: {{baseUrl}}/apis/v2beta1/runs/{{runId}}:retry
+  url: {{baseUrl}}/apis/v2beta1/runs/{{runId}}/retry
   body: none
   auth: none
 }
@@ -18,7 +18,7 @@ headers {
 }
 
 docs {
-  KFP v2beta1 RetryRun (run.proto:170): POST /runs/{run_id}:retry.
+  KFP v2beta1 RetryRun (run.proto:170): POST /runs/{run_id}/retry.
   Empty body — run_id comes from the path. Re-initiates a failed or
   terminated run.
 }

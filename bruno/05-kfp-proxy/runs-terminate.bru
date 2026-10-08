@@ -5,7 +5,7 @@ meta {
 }
 
 post {
-  url: {{baseUrl}}/apis/v2beta1/runs/{{runId}}:terminate
+  url: {{baseUrl}}/apis/v2beta1/runs/{{runId}}/terminate
   body: none
   auth: none
 }
@@ -18,7 +18,7 @@ headers {
 }
 
 docs {
-  KFP v2beta1 TerminateRun (run.proto:163): POST /runs/{run_id}:terminate.
+  KFP v2beta1 TerminateRun (run.proto:163): POST /runs/{run_id}/terminate.
   Empty body — run_id comes from the path. Terminating releases quota
   via the workflow final-state report.
 }

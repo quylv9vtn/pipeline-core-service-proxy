@@ -5,7 +5,7 @@ meta {
 }
 
 post {
-  url: {{baseUrl}}/apis/v2beta1/recurringruns/{{recurringRunId}}:enable
+  url: {{baseUrl}}/apis/v2beta1/recurringruns/{{recurringRunId}}/enable
   body: none
   auth: none
 }
@@ -19,5 +19,5 @@ headers {
 
 docs {
   KFP v2beta1 EnableRecurringRun (recurring_run.proto:60):
-  POST /recurringruns/{recurring_run_id}:enable. Empty body.
+  POST /recurringruns/{recurring_run_id}/enable. Empty body.
 }

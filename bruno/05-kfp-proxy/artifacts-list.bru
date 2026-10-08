@@ -1,0 +1,66 @@
+meta {
+  name: List artifacts
+  type: http
+  seq: 35
+}
+
+get {
+  url: {{baseUrl}}/apis/v2beta1/artifacts
+  body: none
+  auth: none
+}
+
+params:query {
+  page_size: 20
+  ~run_id:
+  ~page_token:
+}
+
+headers {
+  X-Region: {{region}}
+  X-CMP-User-GID: {{userGid}}
+  X-CMP-Project-ID: {{projectId}}
+  Project-ID: {{projectId}}
+}
+
+docs {
+  GET /apis/v2beta1/artifacts
+  List MLMD artifacts. Two modes depending on query params:
+
+  1. Run-scoped (run_id provided):
+     Returns all artifacts produced or consumed by the run, with usages
+     (which step produced/consumed each artifact).
+     Pagination (page_size / page_token) is ignored in this mode.
+
+  2. Global (no run_id):
+     Returns all artifacts via MLMD native pagination.
+     page_size: max artifacts per page (default 20, max 100)
+     page_token: continuation token from a previous response
+
+  Query params:
+    run_id=<id>          filter to a specific run (optional)
+    page_size=<N>        default 20, max 100 (global mode only)
+    page_token=<tok>     continuation token (global mode only)
+
+  Response (run-scoped):
+    {
+      "artifacts": [
+        {
+          "artifact_id": 42,
+          "name": "model",
+          "type_name": "system.Model",
+          "uri": "gs://bucket/path",
+          "state": "LIVE",
+          "usages": [
+            { "task_id": "train-step", "key": "model", "event_type": "OUTPUT" }
+          ]
+        }
+      ]
+    }
+
+  Response (global):
+    {
+      "artifacts": [...],
+      "next_page_token": "..."
+    }
+}

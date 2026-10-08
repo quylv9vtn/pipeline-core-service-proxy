@@ -1,0 +1,77 @@
+meta {
+  name: Compare runs
+  type: http
+  seq: 38
+}
+
+get {
+  url: {{baseUrl}}/apis/v2beta1/runs/compare
+  body: none
+  auth: none
+}
+
+params:query {
+  run_ids: {{runId1}},{{runId2}}
+}
+
+headers {
+  X-Region: {{region}}
+  X-CMP-User-GID: {{userGid}}
+  X-CMP-Project-ID: {{projectId}}
+  Project-ID: {{projectId}}
+}
+
+docs {
+  GET /apis/v2beta1/runs/compare
+
+  Compare 2-10 finished runs that all belong to the same pipeline version.
+
+  Query params:
+    run_ids=<id1>,<id2>,...   comma-separated run IDs (required, 2-10)
+    run_id=<id>               repeated alternative to run_ids
+
+  Constraints (returns 4xx if violated):
+    - At least 2 run IDs
+    - All runs must have the same pipeline_version_id
+    - All runs must be finished (state = SUCCEEDED | FAILED | CANCELED)
+
+  Response:
+    {
+      "pipeline_version_id": "...",
+      "runs": [
+        {
+          "run_id":        "abc-123",
+          "display_name":  "my-run",
+          "create_time":   1700000000,   ← Unix seconds
+          "start_time":    1700000001,
+          "end_time":      1700000120,
+          "duration":      119,          ← seconds (end - start); 0 if not recorded
+          "pipeline_root": "gs://bucket/root",
+          "steps": [
+            {
+              "task_id":           "task-uuid",
+              "display_name":      "train-step",
+              "state":             "COMPLETE",
+              "input_artifacts":   [
+                {
+                  "artifact_id": 1,
+                  "name":        "dataset",
+                  "type_name":   "system.Dataset",
+                  "uri":         "gs://bucket/path",
+                  "state":       "LIVE"
+                }
+              ],
+              "output_artifacts":  [...],
+              "properties":        {...},
+              "custom_properties": {...}
+            }
+          ]
+        }
+      ]
+    }
+
+  Notes:
+    - steps are populated from MLMD; if MLMD is unavailable they are omitted (non-fatal).
+    - properties / custom_properties on each step contain execution-level input/output
+      parameter values as stored by the KFP executor.
+}
