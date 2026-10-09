@@ -17,6 +17,24 @@
   "tags": [
     {
       "name": "VisualizationService"
+    },
+    {
+      "name": "ArtifactService"
+    },
+    {
+      "name": "ExecutionService"
+    },
+    {
+      "name": "CatalogService"
+    },
+    {
+      "name": "CatalogAdminService"
+    },
+    {
+      "name": "Infrastructure"
+    },
+    {
+      "name": "QuotaService"
     }
   ],
   "schemes": [
@@ -242,18 +260,31 @@
         "tags": [
           "ExperimentService"
         ]
-      }
-    },
-    "/apis/v2beta1/experiments/{experiment_id}:archive": {
-      "post": {
-        "summary": "Archives an experiment and the experiment's runs and recurring runs.",
-        "operationId": "ExperimentService_ArchiveExperiment",
+      },
+      "patch": {
+        "summary": "Updates display_name and/or description of an experiment.",
+        "operationId": "ExperimentService_UpdateExperiment",
+        "parameters": [
+          {
+            "name": "experiment_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/cmpUpdateFieldsRequest"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "A successful response.",
+            "description": "Updated experiment.",
             "schema": {
-              "type": "object",
-              "properties": {}
+              "$ref": "#/definitions/v2beta1Experiment"
             }
           },
           "default": {
@@ -263,48 +294,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "experiment_id",
-            "description": "The ID of the experiment to be archived.",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "ExperimentService"
-        ]
-      }
-    },
-    "/apis/v2beta1/experiments/{experiment_id}:unarchive": {
-      "post": {
-        "summary": "Restores an archived experiment. The experiment's archived runs and recurring\r\nruns will stay archived.",
-        "operationId": "ExperimentService_UnarchiveExperiment",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "type": "object",
-              "properties": {}
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/googlerpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "experiment_id",
-            "description": "The ID of the experiment to be restored.",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
         "tags": [
           "ExperimentService"
         ]
@@ -566,6 +555,43 @@
         "tags": [
           "PipelineService"
         ]
+      },
+      "patch": {
+        "summary": "Updates display_name and/or description of a pipeline.",
+        "operationId": "PipelineService_UpdatePipeline",
+        "parameters": [
+          {
+            "name": "pipeline_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/cmpUpdateFieldsRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated pipeline.",
+            "schema": {
+              "$ref": "#/definitions/v2beta1Pipeline"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "PipelineService"
+        ]
       }
     },
     "/apis/v2beta1/pipelines/{pipeline_id}/versions": {
@@ -738,8 +764,58 @@
             "in": "path",
             "required": true,
             "type": "string"
+          },
+          {
+            "name": "cascade",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "description": "If true, also deletes all runs of this pipeline version."
           }
         ],
+        "tags": [
+          "PipelineService"
+        ]
+      },
+      "patch": {
+        "summary": "Updates display_name and/or description of a pipeline version.",
+        "operationId": "PipelineService_UpdatePipelineVersion",
+        "parameters": [
+          {
+            "name": "pipeline_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "pipeline_version_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/cmpUpdateFieldsRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated pipeline version.",
+            "schema": {
+              "$ref": "#/definitions/v2beta1PipelineVersion"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
         "tags": [
           "PipelineService"
         ]
@@ -959,11 +1035,28 @@
         "description": "Lists project namespaces managed by pipeline-core.",
         "operationId": "ListProjects",
         "responses": {
-          "200": {"description": "Managed projects.", "schema": {"$ref": "#/definitions/v2beta1ProjectListResponse"}},
-          "403": {"description": "The caller is not authorized to list projects.", "schema": {"$ref": "#/definitions/v2beta1ProjectError"}},
-          "500": {"description": "Project listing failed.", "schema": {"$ref": "#/definitions/v2beta1ProjectError"}}
+          "200": {
+            "description": "Managed projects.",
+            "schema": {
+              "$ref": "#/definitions/v2beta1ProjectListResponse"
+            }
+          },
+          "403": {
+            "description": "The caller is not authorized to list projects.",
+            "schema": {
+              "$ref": "#/definitions/v2beta1ProjectError"
+            }
+          },
+          "500": {
+            "description": "Project listing failed.",
+            "schema": {
+              "$ref": "#/definitions/v2beta1ProjectError"
+            }
+          }
         },
-        "tags": ["ProjectService"]
+        "tags": [
+          "ProjectService"
+        ]
       },
       "post": {
         "summary": "Provision a project namespace and pipeline runtime",
@@ -1028,103 +1121,149 @@
         "description": "Returns the managed project namespace identified by project UUID.",
         "operationId": "GetProject",
         "parameters": [
-          {"name": "project_id", "in": "path", "required": true, "type": "string", "format": "uuid", "description": "Project UUID."}
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "uuid",
+            "description": "Project UUID."
+          }
         ],
         "responses": {
-          "200": {"description": "Managed project.", "schema": {"$ref": "#/definitions/v2beta1ProjectProvisionResponse"}},
-          "400": {"description": "The project ID is invalid.", "schema": {"$ref": "#/definitions/v2beta1ProjectError"}},
-          "403": {"description": "The caller is not authorized to get projects.", "schema": {"$ref": "#/definitions/v2beta1ProjectError"}},
-          "404": {"description": "The project was not found.", "schema": {"$ref": "#/definitions/v2beta1ProjectError"}},
-          "500": {"description": "Project lookup failed.", "schema": {"$ref": "#/definitions/v2beta1ProjectError"}}
+          "200": {
+            "description": "Managed project.",
+            "schema": {
+              "$ref": "#/definitions/v2beta1ProjectProvisionResponse"
+            }
+          },
+          "400": {
+            "description": "The project ID is invalid.",
+            "schema": {
+              "$ref": "#/definitions/v2beta1ProjectError"
+            }
+          },
+          "403": {
+            "description": "The caller is not authorized to get projects.",
+            "schema": {
+              "$ref": "#/definitions/v2beta1ProjectError"
+            }
+          },
+          "404": {
+            "description": "The project was not found.",
+            "schema": {
+              "$ref": "#/definitions/v2beta1ProjectError"
+            }
+          },
+          "500": {
+            "description": "Project lookup failed.",
+            "schema": {
+              "$ref": "#/definitions/v2beta1ProjectError"
+            }
+          }
         },
-        "tags": ["ProjectService"]
+        "tags": [
+          "ProjectService"
+        ]
       }
     },
     "/quota/limits": {
       "get": {
         "summary": "Get project quota limits",
-        "operationId": "QuotaService_GetLimits",
-        "parameters": [{"name": "project_id", "in": "query", "required": true, "type": "string", "format": "uuid"}],
+        "operationId": "QuotaService_GetLimitsV2",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "query",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          }
+        ],
         "responses": {
-          "200": {"description": "Configured quota limits.", "schema": {"$ref": "#/definitions/quotaLimitsResponse"}},
-          "400": {"description": "Invalid project ID."},
-          "500": {"description": "Failed to read quota limits."}
+          "200": {
+            "description": "Configured quota limits.",
+            "schema": {
+              "$ref": "#/definitions/quotaLimitsResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid project ID."
+          },
+          "500": {
+            "description": "Failed to read quota limits."
+          }
         },
-        "tags": ["QuotaService"]
+        "tags": [
+          "QuotaService"
+        ]
       },
       "put": {
-        "summary": "Set or update project quota limits",
-        "description": "Stores the quota limits for a project in this Core region. A zero limit means the resource is not allowed.",
-        "operationId": "QuotaService_PutLimits",
+        "summary": "Sets quota limits for a project (QM-CHAIN, requires X-Service-Key).",
+        "operationId": "QuotaService_SetLimits",
         "parameters": [
           {
             "name": "body",
             "in": "body",
             "required": true,
             "schema": {
-              "type": "object",
-              "required": ["project_id", "limits"],
-              "properties": {
-                "project_id": {"type": "string", "format": "uuid"},
-                "limits": {
-                  "type": "object",
-                  "required": ["ai_pipeline_cpu", "ai_pipeline_memory", "ai_pipeline_gpu_rtx2080", "ai_pipeline_gpu_h200"],
-                  "properties": {
-                    "ai_pipeline_cpu": {"type": "integer", "format": "int64", "minimum": 0},
-                    "ai_pipeline_memory": {"type": "integer", "format": "int64", "minimum": 0},
-                    "ai_pipeline_gpu_rtx2080": {"type": "integer", "format": "int64", "minimum": 0},
-                    "ai_pipeline_gpu_h200": {"type": "integer", "format": "int64", "minimum": 0}
-                  }
-                }
-              }
+              "$ref": "#/definitions/cmpQuotaLimitsRequest"
             }
           }
         ],
         "responses": {
-          "204": {"description": "Quota limits saved."},
-          "400": {"description": "Invalid project ID or limit values."},
-          "500": {"description": "Failed to save quota limits."}
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
         },
-        "tags": ["QuotaService"]
+        "tags": [
+          "QuotaService"
+        ]
       }
     },
     "/quota/usage": {
       "get": {
         "summary": "Get current project quota usage",
-        "operationId": "QuotaService_GetUsage",
+        "operationId": "QuotaService_GetUsageV2",
         "parameters": [
-          {"name": "project_id", "in": "query", "required": true, "type": "string", "format": "uuid"}
+          {
+            "name": "project_id",
+            "in": "query",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          }
         ],
         "responses": {
           "200": {
-            "description": "Current usage. Unknown projects return zero values.",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "project_id": {"type": "string", "format": "uuid"},
-                "used": {
-                  "type": "object",
-                  "properties": {
-                    "ai_pipeline_cpu": {"type": "integer", "format": "int64"},
-                    "ai_pipeline_memory": {"type": "integer", "format": "int64"},
-                    "ai_pipeline_gpu_rtx2080": {"type": "integer", "format": "int64"},
-                    "ai_pipeline_gpu_h200": {"type": "integer", "format": "int64"}
-                  }
-                }
-              }
-            }
+            "description": "Current usage."
           },
-          "400": {"description": "Invalid project ID."},
-          "500": {"description": "Failed to read quota usage."}
+          "400": {
+            "description": "Invalid project ID."
+          },
+          "500": {
+            "description": "Failed to read quota usage."
+          }
         },
-        "tags": ["QuotaService"]
+        "tags": [
+          "QuotaService"
+        ]
       }
     },
     "/quota/usage/bulk": {
       "post": {
-        "summary": "Get quota usage for multiple projects",
-        "description": "Returns usage for up to 100 projects in this Core region.",
-        "operationId": "QuotaService_GetUsageBulk",
+        "summary": "Returns quota usage for multiple projects in one call (QM-CHAIN).",
+        "operationId": "QuotaService_BulkUsage",
         "parameters": [
           {
             "name": "body",
@@ -1132,70 +1271,34 @@
             "required": true,
             "schema": {
               "type": "object",
-              "required": ["project_ids"],
               "properties": {
-                "project_ids": {"type": "array", "maxItems": 100, "items": {"type": "string", "format": "uuid"}}
+                "project_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
               }
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Usage for each requested project.",
+            "description": "A successful response.",
             "schema": {
-              "type": "object",
-              "properties": {
-                "results": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "project_id": {"type": "string", "format": "uuid"},
-                      "used": {"type": "object", "additionalProperties": {"type": "integer", "format": "int64"}}
-                    }
-                  }
-                }
-              }
+              "$ref": "#/definitions/cmpQuotaBulkUsageResponse"
             }
           },
-          "400": {"description": "Invalid project ID list or more than 100 projects."},
-          "500": {"description": "Failed to read quota usage."}
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
         },
-        "tags": ["QuotaService"]
-      }
-    },
-    "/apis/v2beta1/quota/limits": {
-      "get": {
-        "summary": "Get project quota limits",
-        "operationId": "QuotaService_GetLimitsV2",
-        "parameters": [{"name": "project_id", "in": "query", "required": true, "type": "string", "format": "uuid"}],
-        "responses": {"200": {"description": "Configured quota limits.", "schema": {"$ref": "#/definitions/quotaLimitsResponse"}}, "400": {"description": "Invalid project ID."}, "500": {"description": "Failed to read quota limits."}},
-        "tags": ["QuotaService"]
-      },
-      "put": {
-        "summary": "Set or update project quota limits",
-        "operationId": "QuotaService_PutLimitsV2",
-        "parameters": [{"name": "body", "in": "body", "required": true, "schema": {"$ref": "#/paths/~1quota~1limits/put/parameters/0/schema"}}],
-        "responses": {"204": {"description": "Quota limits saved."}, "400": {"description": "Invalid request."}, "500": {"description": "Failed to save quota limits."}},
-        "tags": ["QuotaService"]
-      }
-    },
-    "/apis/v2beta1/quota/usage": {
-      "get": {
-        "summary": "Get current project quota usage",
-        "operationId": "QuotaService_GetUsageV2",
-        "parameters": [{"name": "project_id", "in": "query", "required": true, "type": "string", "format": "uuid"}],
-        "responses": {"200": {"description": "Current usage."}, "400": {"description": "Invalid project ID."}, "500": {"description": "Failed to read quota usage."}},
-        "tags": ["QuotaService"]
-      }
-    },
-    "/apis/v2beta1/quota/usage/bulk": {
-      "post": {
-        "summary": "Get quota usage for multiple projects",
-        "operationId": "QuotaService_GetUsageBulkV2",
-        "parameters": [{"name": "body", "in": "body", "required": true, "schema": {"$ref": "#/paths/~1quota~1usage~1bulk/post/parameters/0/schema"}}],
-        "responses": {"200": {"description": "Usage for each requested project."}, "400": {"description": "Invalid request."}, "500": {"description": "Failed to read quota usage."}},
-        "tags": ["QuotaService"]
+        "tags": [
+          "QuotaService"
+        ]
       }
     },
     "/apis/v2beta1/recurringruns": {
@@ -1373,18 +1476,31 @@
         "tags": [
           "RecurringRunService"
         ]
-      }
-    },
-    "/apis/v2beta1/recurringruns/{recurring_run_id}:disable": {
-      "post": {
-        "summary": "Stops a recurring run and all its associated runs. The recurring run is not deleted.",
-        "operationId": "RecurringRunService_DisableRecurringRun",
+      },
+      "patch": {
+        "summary": "Updates display_name and/or description of a recurring run.",
+        "operationId": "RecurringRunService_UpdateRecurringRun",
+        "parameters": [
+          {
+            "name": "recurring_run_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/cmpUpdateFieldsRequest"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "A successful response.",
+            "description": "Updated recurring run.",
             "schema": {
-              "type": "object",
-              "properties": {}
+              "$ref": "#/definitions/v2beta1RecurringRun"
             }
           },
           "default": {
@@ -1394,48 +1510,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "recurring_run_id",
-            "description": "The ID of the recurring runs to be disabled.",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "RecurringRunService"
-        ]
-      }
-    },
-    "/apis/v2beta1/recurringruns/{recurring_run_id}:enable": {
-      "post": {
-        "summary": "Restarts a recurring run that was previously stopped. All runs associated with the\r\nrecurring run will continue.",
-        "operationId": "RecurringRunService_EnableRecurringRun",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "type": "object",
-              "properties": {}
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/googlerpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "recurring_run_id",
-            "description": "The ID of the recurring runs to be enabled.",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
         "tags": [
           "RecurringRunService"
         ]
@@ -1953,7 +2027,45 @@
         ]
       }
     },
-    "/apis/v2beta1/runs/{run_id}:archive": {
+    "/apis/v2beta1/visualizations/{namespace}": {
+      "post": {
+        "operationId": "VisualizationService_CreateVisualizationV1",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v2beta1Visualization"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "visualization",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v2beta1Visualization"
+            }
+          }
+        ],
+        "tags": [
+          "VisualizationService"
+        ]
+      }
+    },
+    "/apis/v2beta1/runs/{run_id}/archive": {
       "post": {
         "summary": "Archives a run in an experiment given by run ID and experiment ID.",
         "operationId": "RunService_ArchiveRun",
@@ -1993,7 +2105,7 @@
         ]
       }
     },
-    "/apis/v2beta1/runs/{run_id}:retry": {
+    "/apis/v2beta1/runs/{run_id}/retry": {
       "post": {
         "summary": "Re-initiates a failed or terminated run.",
         "operationId": "RunService_RetryRun",
@@ -2033,7 +2145,7 @@
         ]
       }
     },
-    "/apis/v2beta1/runs/{run_id}:terminate": {
+    "/apis/v2beta1/runs/{run_id}/terminate": {
       "post": {
         "summary": "Terminates an active run.",
         "operationId": "RunService_TerminateRun",
@@ -2073,7 +2185,7 @@
         ]
       }
     },
-    "/apis/v2beta1/runs/{run_id}:unarchive": {
+    "/apis/v2beta1/runs/{run_id}/unarchive": {
       "post": {
         "summary": "Restores an archived run in an experiment given by run ID and experiment ID.",
         "operationId": "RunService_UnarchiveRun",
@@ -2113,14 +2225,16 @@
         ]
       }
     },
-    "/apis/v2beta1/visualizations/{namespace}": {
+    "/apis/v2beta1/recurringruns/{recurring_run_id}/disable": {
       "post": {
-        "operationId": "VisualizationService_CreateVisualizationV1",
+        "summary": "Stops a recurring run and all its associated runs. The recurring run is not deleted.",
+        "operationId": "RecurringRunService_DisableRecurringRun",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v2beta1Visualization"
+              "type": "object",
+              "properties": {}
             }
           },
           "default": {
@@ -2132,22 +2246,903 @@
         },
         "parameters": [
           {
+            "name": "recurring_run_id",
+            "description": "The ID of the recurring runs to be disabled.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "RecurringRunService"
+        ]
+      }
+    },
+    "/apis/v2beta1/recurringruns/{recurring_run_id}/enable": {
+      "post": {
+        "summary": "Restarts a recurring run that was previously stopped. All runs associated with the\r\nrecurring run will continue.",
+        "operationId": "RecurringRunService_EnableRecurringRun",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "recurring_run_id",
+            "description": "The ID of the recurring runs to be enabled.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "RecurringRunService"
+        ]
+      }
+    },
+    "/apis/v2beta1/experiments/{experiment_id}/archive": {
+      "post": {
+        "summary": "Archives an experiment and the experiment's runs and recurring runs.",
+        "operationId": "ExperimentService_ArchiveExperiment",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "experiment_id",
+            "description": "The ID of the experiment to be archived.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ExperimentService"
+        ]
+      }
+    },
+    "/apis/v2beta1/experiments/{experiment_id}/unarchive": {
+      "post": {
+        "summary": "Restores an archived experiment. The experiment's archived runs and recurring\r\nruns will stay archived.",
+        "operationId": "ExperimentService_UnarchiveExperiment",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "experiment_id",
+            "description": "The ID of the experiment to be restored.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ExperimentService"
+        ]
+      }
+    },
+    "/apis/v2beta1/artifacts": {
+      "get": {
+        "summary": "Lists MLMD artifacts globally or scoped to a run/pipeline version/experiment. Supports pagination.",
+        "operationId": "ArtifactService_ListArtifacts",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "Filter by run ID."
+          },
+          {
+            "name": "pipeline_version_id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "experiment_id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "page_token",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cmpListArtifactsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "ArtifactService"
+        ]
+      }
+    },
+    "/apis/v2beta1/artifacts/{artifact_id}": {
+      "get": {
+        "summary": "Returns a single MLMD artifact by numeric ID.",
+        "operationId": "ArtifactService_GetArtifact",
+        "parameters": [
+          {
+            "name": "artifact_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cmpArtifactItem"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "ArtifactService"
+        ]
+      }
+    },
+    "/apis/v2beta1/executions": {
+      "get": {
+        "summary": "Lists MLMD executions across all runs. Supports filtering and pagination.",
+        "operationId": "ExecutionService_ListExecutions",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
             "name": "namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "Comma-separated MLMD states: COMPLETE, FAILED, NEW, RUNNING, CANCELED, UNKNOWN."
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "page_token",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cmpListExecutionsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "ExecutionService"
+        ]
+      }
+    },
+    "/apis/v2beta1/executions/{execution_id}": {
+      "get": {
+        "summary": "Returns a single MLMD execution by numeric ID, enriched with run/task metadata and linked artifacts.",
+        "operationId": "ExecutionService_GetExecution",
+        "parameters": [
+          {
+            "name": "execution_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cmpExecutionItem"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "ExecutionService"
+        ]
+      }
+    },
+    "/apis/v2beta1/runs/compare": {
+      "get": {
+        "summary": "Compares 2–10 finished runs from the same pipeline version. Returns per-run metadata and step-level artifact/param details.",
+        "operationId": "RunService_CompareRuns",
+        "parameters": [
+          {
+            "name": "run_ids",
+            "in": "query",
+            "required": true,
+            "type": "string",
+            "description": "Comma-separated list of run IDs (2–10). All must belong to the same pipeline version and be in a finished state."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cmpCompareRunsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "RunService"
+        ]
+      }
+    },
+    "/apis/v2beta1/runs/delete": {
+      "post": {
+        "summary": "Deletes a batch of runs concurrently. Returns 200 with per-ID results even if some deletions fail.",
+        "operationId": "RunService_BatchDeleteRuns",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/cmpBatchDeleteRunsRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cmpBatchDeleteRunsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "RunService"
+        ]
+      }
+    },
+    "/apis/v2beta1/pipelines/delete": {
+      "post": {
+        "summary": "Deletes a batch of pipelines concurrently. With cascade=true also deletes all versions and runs.",
+        "operationId": "PipelineService_BatchDeletePipelines",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/cmpBatchDeletePipelinesRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cmpBatchDeletePipelinesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "PipelineService"
+        ]
+      }
+    },
+    "/apis/v2beta1/pipelines/versions/delete": {
+      "post": {
+        "summary": "Deletes a batch of pipeline versions concurrently. With cascade=true also deletes associated runs.",
+        "operationId": "PipelineService_BatchDeletePipelineVersions",
+        "parameters": [
+          {
+            "name": "cascade",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/cmpBatchDeletePipelineVersionsRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cmpBatchDeletePipelineVersionsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "PipelineService"
+        ]
+      }
+    },
+    "/apis/v2beta1/runs/{run_id}/nodes/{node_id}/artifacts/{artifact_name}:read": {
+      "get": {
+        "summary": "Downloads the content of a named artifact produced by a specific node in a run. Content is base64-encoded.",
+        "operationId": "RunService_ReadArtifact",
+        "parameters": [
+          {
+            "name": "run_id",
             "in": "path",
             "required": true,
             "type": "string"
           },
           {
-            "name": "visualization",
+            "name": "node_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "artifact_name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v2beta1ReadArtifactResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "RunService"
+        ]
+      }
+    },
+    "/apis/v1alpha1/runs/{run_id}/nodes/{task_id}/log": {
+      "get": {
+        "summary": "Streams or returns the console log of a pipeline step (pod). Falls back to archived logs when the pod is gone.",
+        "operationId": "RunService_GetRunNodeLog",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "follow",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "description": "If true, stream logs as they arrive (server-sent)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Plain-text log stream.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "produces": [
+          "text/plain",
+          "application/json"
+        ],
+        "tags": [
+          "RunService"
+        ]
+      }
+    },
+    "/apis/v2beta1/flavors": {
+      "get": {
+        "summary": "Lists enabled GPU/CPU flavors for the requested region. Requires X-Region header.",
+        "operationId": "CatalogService_ListFlavors",
+        "parameters": [
+          {
+            "name": "X-Region",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cmpListFlavorsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "CatalogService"
+        ]
+      }
+    },
+    "/apis/v2beta1/images": {
+      "get": {
+        "summary": "Lists enabled container images for the requested region. Requires X-Region header.",
+        "operationId": "CatalogService_ListImages",
+        "parameters": [
+          {
+            "name": "X-Region",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cmpListImagesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "CatalogService"
+        ]
+      }
+    },
+    "/apis/v2beta1/admin/flavors": {
+      "get": {
+        "summary": "Lists all flavors (all statuses) for a region. Admin use only.",
+        "operationId": "CatalogAdminService_ListFlavors",
+        "parameters": [
+          {
+            "name": "region",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cmpListFlavorsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "CatalogAdminService"
+        ]
+      },
+      "post": {
+        "summary": "Creates a new flavor.",
+        "operationId": "CatalogAdminService_CreateFlavor",
+        "parameters": [
+          {
+            "name": "body",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v2beta1Visualization"
+              "$ref": "#/definitions/cmpFlavor"
             }
           }
         ],
+        "responses": {
+          "200": {
+            "description": "Created flavor.",
+            "schema": {
+              "$ref": "#/definitions/cmpFlavor"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
         "tags": [
-          "VisualizationService"
+          "CatalogAdminService"
+        ]
+      }
+    },
+    "/apis/v2beta1/admin/flavors/{flavor_id}": {
+      "put": {
+        "summary": "Updates a flavor. region_name is immutable.",
+        "operationId": "CatalogAdminService_UpdateFlavor",
+        "parameters": [
+          {
+            "name": "flavor_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/cmpFlavor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated flavor.",
+            "schema": {
+              "$ref": "#/definitions/cmpFlavor"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "CatalogAdminService"
+        ]
+      },
+      "delete": {
+        "summary": "Deletes a flavor.",
+        "operationId": "CatalogAdminService_DeleteFlavor",
+        "parameters": [
+          {
+            "name": "flavor_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "CatalogAdminService"
+        ]
+      }
+    },
+    "/apis/v2beta1/admin/images": {
+      "get": {
+        "summary": "Lists all images (all statuses) for a region. Admin use only.",
+        "operationId": "CatalogAdminService_ListImages",
+        "parameters": [
+          {
+            "name": "region",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cmpListImagesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "CatalogAdminService"
+        ]
+      },
+      "post": {
+        "summary": "Creates a new container image entry.",
+        "operationId": "CatalogAdminService_CreateImage",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/cmpImage"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Created image.",
+            "schema": {
+              "$ref": "#/definitions/cmpImage"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "CatalogAdminService"
+        ]
+      }
+    },
+    "/apis/v2beta1/admin/images/{image_id}": {
+      "put": {
+        "summary": "Updates an image entry. region_name is immutable.",
+        "operationId": "CatalogAdminService_UpdateImage",
+        "parameters": [
+          {
+            "name": "image_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/cmpImage"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated image.",
+            "schema": {
+              "$ref": "#/definitions/cmpImage"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "CatalogAdminService"
+        ]
+      },
+      "delete": {
+        "summary": "Deletes an image entry.",
+        "operationId": "CatalogAdminService_DeleteImage",
+        "parameters": [
+          {
+            "name": "image_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "CatalogAdminService"
+        ]
+      }
+    },
+    "/healthz": {
+      "get": {
+        "summary": "Health check for the pipeline-core gateway.",
+        "operationId": "Infrastructure_Healthz",
+        "responses": {
+          "200": {
+            "description": "Service is healthy.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Infrastructure"
+        ]
+      }
+    },
+    "/regions": {
+      "get": {
+        "summary": "Lists available regions.",
+        "operationId": "Infrastructure_ListRegions",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cmpListRegionsResponse"
+            }
+          }
+        },
+        "tags": [
+          "Infrastructure"
+        ]
+      }
+    },
+    "/metrics": {
+      "get": {
+        "summary": "Prometheus metrics endpoint.",
+        "operationId": "Infrastructure_Metrics",
+        "produces": [
+          "text/plain"
+        ],
+        "responses": {
+          "200": {
+            "description": "Prometheus text exposition format.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "tags": [
+          "Infrastructure"
         ]
       }
     }
@@ -2155,16 +3150,34 @@
   "definitions": {
     "quotaLimitsResponse": {
       "type": "object",
-      "required": ["project_id", "limits"],
+      "required": [
+        "project_id",
+        "limits"
+      ],
       "properties": {
-        "project_id": {"type": "string", "format": "uuid"},
+        "project_id": {
+          "type": "string",
+          "format": "uuid"
+        },
         "limits": {
           "type": "object",
           "properties": {
-            "ai_pipeline_cpu": {"type": "integer", "format": "int64"},
-            "ai_pipeline_memory": {"type": "integer", "format": "int64"},
-            "ai_pipeline_gpu_rtx2080": {"type": "integer", "format": "int64"},
-            "ai_pipeline_gpu_h200": {"type": "integer", "format": "int64"}
+            "ai_pipeline_cpu": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "ai_pipeline_memory": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "ai_pipeline_gpu_rtx2080": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "ai_pipeline_gpu_h200": {
+              "type": "integer",
+              "format": "int64"
+            }
           }
         }
       }
@@ -2625,11 +3638,15 @@
     },
     "v2beta1ProjectListResponse": {
       "type": "object",
-      "required": ["projects"],
+      "required": [
+        "projects"
+      ],
       "properties": {
         "projects": {
           "type": "array",
-          "items": {"$ref": "#/definitions/v2beta1ProjectProvisionResponse"}
+          "items": {
+            "$ref": "#/definitions/v2beta1ProjectProvisionResponse"
+          }
         }
       }
     },
@@ -3549,6 +4566,537 @@
       ],
       "default": "ROC_CURVE",
       "description": "Type of visualization to be generated.\r\nThis is required when creating the pipeline through CreateVisualization\r\nAPI."
+    },
+    "cmpUpdateFieldsRequest": {
+      "type": "object",
+      "properties": {
+        "display_name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "cmpArtifactItem": {
+      "type": "object",
+      "properties": {
+        "artifact_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "type_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "type_name": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "uri": {
+          "type": "string"
+        },
+        "external_id": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        },
+        "created_at_ms": {
+          "type": "string",
+          "format": "int64"
+        },
+        "last_updated_at_ms": {
+          "type": "string",
+          "format": "int64"
+        },
+        "properties": {
+          "type": "object"
+        },
+        "custom_properties": {
+          "type": "object"
+        }
+      }
+    },
+    "cmpListArtifactsResponse": {
+      "type": "object",
+      "properties": {
+        "artifacts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/cmpArtifactItem"
+          }
+        },
+        "total_size": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "next_page_token": {
+          "type": "string"
+        }
+      }
+    },
+    "cmpExecutionArtifact": {
+      "type": "object",
+      "properties": {
+        "artifact_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "type_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "type_name": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "uri": {
+          "type": "string"
+        },
+        "external_id": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        },
+        "key": {
+          "type": "string",
+          "description": "MLMD event path key."
+        },
+        "created_at_ms": {
+          "type": "string",
+          "format": "int64"
+        },
+        "last_updated_at_ms": {
+          "type": "string",
+          "format": "int64"
+        },
+        "properties": {
+          "type": "object"
+        },
+        "custom_properties": {
+          "type": "object"
+        }
+      }
+    },
+    "cmpExecutionItem": {
+      "type": "object",
+      "properties": {
+        "run_id": {
+          "type": "string"
+        },
+        "execution_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "type_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "type_name": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "external_id": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "pod_name": {
+          "type": "string"
+        },
+        "created_at_ms": {
+          "type": "string",
+          "format": "int64"
+        },
+        "last_updated_at_ms": {
+          "type": "string",
+          "format": "int64"
+        },
+        "properties": {
+          "type": "object"
+        },
+        "custom_properties": {
+          "type": "object"
+        },
+        "input_artifacts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/cmpExecutionArtifact"
+          }
+        },
+        "output_artifacts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/cmpExecutionArtifact"
+          }
+        }
+      }
+    },
+    "cmpListExecutionsResponse": {
+      "type": "object",
+      "properties": {
+        "executions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/cmpExecutionItem"
+          }
+        },
+        "total_size": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "next_page_token": {
+          "type": "string"
+        }
+      }
+    },
+    "cmpCompareRunEntry": {
+      "type": "object",
+      "properties": {
+        "run_id": {
+          "type": "string"
+        },
+        "display_name": {
+          "type": "string"
+        },
+        "create_time": {
+          "type": "string",
+          "format": "int64"
+        },
+        "start_time": {
+          "type": "string",
+          "format": "int64"
+        },
+        "end_time": {
+          "type": "string",
+          "format": "int64"
+        },
+        "duration": {
+          "type": "string",
+          "format": "int64",
+          "description": "Duration in seconds."
+        },
+        "pipeline_root": {
+          "type": "string"
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "task_id": {
+                "type": "string"
+              },
+              "display_name": {
+                "type": "string"
+              },
+              "state": {
+                "type": "string"
+              },
+              "input_artifacts": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/cmpExecutionArtifact"
+                }
+              },
+              "output_artifacts": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/cmpExecutionArtifact"
+                }
+              },
+              "properties": {
+                "type": "object"
+              },
+              "custom_properties": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "cmpCompareRunsResponse": {
+      "type": "object",
+      "properties": {
+        "pipeline_version_id": {
+          "type": "string"
+        },
+        "runs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/cmpCompareRunEntry"
+          }
+        }
+      }
+    },
+    "cmpBatchDeleteRunsRequest": {
+      "type": "object",
+      "properties": {
+        "run_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "run_ids"
+      ]
+    },
+    "cmpBatchDeleteRunsResponse": {
+      "type": "object",
+      "properties": {
+        "deleted_run_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "run_id": {
+                "type": "string"
+              },
+              "error": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "cmpBatchDeletePipelinesRequest": {
+      "type": "object",
+      "properties": {
+        "pipeline_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "cascade": {
+          "type": "boolean",
+          "description": "If true, also deletes all versions and runs."
+        }
+      },
+      "required": [
+        "pipeline_ids"
+      ]
+    },
+    "cmpBatchDeletePipelinesResponse": {
+      "type": "object",
+      "properties": {
+        "deleted_pipeline_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "pipeline_id": {
+                "type": "string"
+              },
+              "error": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "cmpBatchDeletePipelineVersionsRequest": {
+      "type": "object",
+      "properties": {
+        "pipeline_version_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "pipeline_version_ids"
+      ]
+    },
+    "cmpBatchDeletePipelineVersionsResponse": {
+      "type": "object",
+      "properties": {
+        "deleted_pipeline_version_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "pipeline_version_id": {
+                "type": "string"
+              },
+              "error": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "cmpFlavor": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "region_name": {
+          "type": "string"
+        },
+        "cpu_milli": {
+          "type": "string",
+          "format": "int64"
+        },
+        "memory_mib": {
+          "type": "string",
+          "format": "int64"
+        },
+        "gpu_model": {
+          "type": "string"
+        },
+        "gpu_count": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "enabled",
+            "disabled"
+          ]
+        }
+      }
+    },
+    "cmpListFlavorsResponse": {
+      "type": "object",
+      "properties": {
+        "flavors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/cmpFlavor"
+          }
+        }
+      }
+    },
+    "cmpImage": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "region_name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "image_url": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "enabled",
+            "disabled"
+          ]
+        }
+      }
+    },
+    "cmpListImagesResponse": {
+      "type": "object",
+      "properties": {
+        "images": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/cmpImage"
+          }
+        }
+      }
+    },
+    "cmpListRegionsResponse": {
+      "type": "object",
+      "properties": {
+        "regions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "display_name": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "cmpQuotaLimitsRequest": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "type": "string"
+        },
+        "limits": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "cmpQuotaBulkUsageResponse": {
+      "type": "object",
+      "properties": {
+        "usage": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object"
+          }
+        }
+      }
     }
   },
   "securityDefinitions": {

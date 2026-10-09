@@ -5,13 +5,18 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/apis/v2beta1/pipelines?page_size=20
+  url: {{baseUrl}}/apis/v2beta1/pipelines?page_size=1&name=hello-world1
   body: none
   auth: none
 }
 
+params:query {
+  page_size: 1
+  name: hello-world1
+}
+
 headers {
-  X-Region: {{region}}
+  X-Region: all
   X-CMP-User-GID: {{userGid}}
   X-CMP-Project-ID: {{projectId}}
   Project-ID: {{projectId}}

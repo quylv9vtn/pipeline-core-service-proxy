@@ -5,13 +5,13 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/apis/v2beta1/runs/compare
+  url: {{baseUrl}}/apis/v2beta1/runs/compare?run_ids=runId1,runId2
   body: none
   auth: none
 }
 
 params:query {
-  run_ids: {{runId1}},{{runId2}}
+  run_ids: runId1,runId2
 }
 
 headers {
@@ -23,18 +23,18 @@ headers {
 
 docs {
   GET /apis/v2beta1/runs/compare
-
+  
   Compare 2-10 finished runs that all belong to the same pipeline version.
-
+  
   Query params:
     run_ids=<id1>,<id2>,...   comma-separated run IDs (required, 2-10)
     run_id=<id>               repeated alternative to run_ids
-
+  
   Constraints (returns 4xx if violated):
     - At least 2 run IDs
     - All runs must have the same pipeline_version_id
     - All runs must be finished (state = SUCCEEDED | FAILED | CANCELED)
-
+  
   Response:
     {
       "pipeline_version_id": "...",
@@ -69,7 +69,7 @@ docs {
         }
       ]
     }
-
+  
   Notes:
     - steps are populated from MLMD; if MLMD is unavailable they are omitted (non-fatal).
     - properties / custom_properties on each step contain execution-level input/output
