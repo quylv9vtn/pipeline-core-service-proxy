@@ -1,0 +1,32 @@
+meta {
+  name: Patch experiment
+  type: http
+  seq: 43
+}
+
+patch {
+  url: {{baseUrl}}/apis/v2beta1/experiments/{{experimentId}}
+  body: json
+  auth: none
+}
+
+headers {
+  X-Region: {{region}}
+  X-CMP-User-GID: {{userGid}}
+  X-CMP-Project-ID: {{projectId}}
+  Project-ID: {{projectId}}
+}
+
+body:json {
+  {
+    "display_name": "updated-experiment-name",
+    "description": "Updated experiment description"
+  }
+}
+
+docs {
+  PATCH /apis/v2beta1/experiments/{experiment_id}
+  Updates display_name and/or description of an experiment.
+  Both fields are optional. Returns the full updated experiment resource.
+  Returns 404 if the experiment does not exist.
+}

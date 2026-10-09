@@ -1,0 +1,58 @@
+meta {
+  name: Batch delete pipelines
+  type: http
+  seq: 42
+}
+
+post {
+  url: {{baseUrl}}/apis/v2beta1/pipelines/delete
+  body: json
+  auth: none
+}
+
+params:query {
+  ~cascade: true
+}
+
+headers {
+  X-Region: {{region}}
+  X-CMP-User-GID: {{userGid}}
+  X-CMP-Project-ID: {{projectId}}
+  Project-ID: {{projectId}}
+}
+
+body:json {
+  {
+    "pipeline_ids": ["{{pipelineId}}"]
+  }
+}
+
+docs {
+  POST /apis/v2beta1/pipelines/delete
+  Deletes multiple pipelines concurrently.
+
+  Without ?cascade=true:
+    Pipelines that still have versions are reported as errors and left untouched.
+
+  With ?cascade=true:
+    For each pipeline, all its versions are deleted first (and for each version,
+    all associated runs are deleted before the version is removed), then the
+    pipeline itself is deleted.
+    Deletion order per pipeline (all concurrent within each level):
+      1. Runs   (per version, concurrently)
+      2. Versions (concurrently)
+      3. Pipeline
+
+  HTTP 200 always; partial failures are listed in the errors array.
+
+  Request body:
+    { "pipeline_ids": ["id1", "id2", ...] }
+
+  Response:
+    {
+      "deleted_pipeline_ids": ["id1", "id2"],
+      "errors": [
+        { "pipeline_id": "id3", "error": "pipeline has 2 version(s); retry with ?cascade=true ..." }
+      ]
+    }
+}
